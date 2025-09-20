@@ -1,4 +1,5 @@
 import asyncio
+import os
 import sys
 import traceback
 from typing import Any, Dict
@@ -6,8 +7,7 @@ from typing import Any, Dict
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool
-
-from backend.tools.tools import (
+from tools.tools import (
     delete_video_from_container,
     get_video_by_filename,
     list_videos_in_container,
@@ -24,7 +24,6 @@ async def create_mcp_server():
 
     tool_logic_registry = {
         "list_videos_in_container": list_videos_in_container,
-        "get_video_by_filename": get_video_by_filename,
         "merge_videos_in_container": merge_videos_in_container,
         "delete_video_from_container": delete_video_from_container,
     }
@@ -37,21 +36,16 @@ async def create_mcp_server():
         return [
             Tool(
                 name="list_videos_in_container",
-                description="Lists all video files in the /app/data directory of the container.",
-                inputSchema={"type": "object", "properties": {}},
-            ),
-            Tool(
-                name="get_video_by_filename",
-                description="Downloads a video from the container to the local agent downloads directory.",
+                description="Lists all files in a specified directory ('videos', 'results', or 'temp') of the container.",
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "filename": {
+                        "path": {
                             "type": "string",
-                            "description": "The filename of the video to download.",
+                            "description": "The directory to list files from: 'videos', 'results', or 'temp'.",
                         }
                     },
-                    "required": ["filename"],
+                    "required": ["path"],
                 },
             ),
             Tool(

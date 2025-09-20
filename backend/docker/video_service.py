@@ -15,6 +15,7 @@ from .config import (
     AGENT_DOWNLOADS_PATH,
     ALLOWED_VIDEO_EXTENSIONS,
     CONTAINER_RESULTS_PATH,
+    CONTAINER_TEMP_PATH,
     CONTAINER_VIDEOS_PATH,
 )
 from .manager import DockerManager
@@ -98,13 +99,15 @@ class VideoService:
         """List all videos in the container"""
         self.ensure_container_running()
 
-        # List videos and results
+        # List videos, results, and temp files
         videos_success, videos = self.docker.list_files(CONTAINER_VIDEOS_PATH)
         results_success, results = self.docker.list_files(CONTAINER_RESULTS_PATH)
+        temp_success, temp_files = self.docker.list_files(CONTAINER_TEMP_PATH)
 
         return {
             "videos": videos if videos_success else [],
             "results": results if results_success else [],
+            "temp": temp_files if temp_success else [],
         }
 
     def get_video_by_filename(self, filename: str) -> str:

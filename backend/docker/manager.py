@@ -4,7 +4,9 @@ Docker Manager for Video Processing Container
 Handles all Docker operations with fallback methods
 """
 
+import os
 import subprocess
+import tempfile
 from typing import Tuple
 
 import docker
@@ -126,3 +128,42 @@ class DockerManager:
         """Get detailed container information"""
         is_running, status = self.check_container_status()
         return {"name": self.container_name, "running": is_running, "status": status}
+
+    def execute_script(
+        self, script_content: str, container_temp_path: str = "/app/temp"
+    ) -> Tuple[bool, str]:
+        """
+        A helper function to execute a Python script inside the container.
+        Handles creating, copying, executing, and cleaning up the script.
+        """
+        temp_script_path = None
+
+        try:
+            # Create a temporary file to hold the script
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".py", delete=False
+            ) as temp_script:
+                temp_script.write(script_content)
+                temp_script_path = temp_script.name
+
+            # Define path for the script inside the container
+            container_script_path = (
+                f"{container_temp_path}/{os.path.basename(temp_script_path)}"
+            )
+
+            # Copy the script to the container
+            if not self.copy_file_to_container(temp_script_path, container_script_path):
+                return (False, "Failed to copy script to container.")
+
+            # Execute the script in the container
+            success, output = self.exec_command(f"python3 {container_script_path}")
+
+            # Clean up the script from the container
+            self.delete_file(container_script_path)
+
+            return (success, output)
+
+        finally:
+            # Clean up the local temporary file
+            if temp_script_path and os.path.exists(temp_script_path):
+                os.remove(temp_script_path)

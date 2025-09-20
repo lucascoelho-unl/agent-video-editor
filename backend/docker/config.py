@@ -9,6 +9,7 @@ import os
 CONTAINER_NAME = "video-editor-tools"
 CONTAINER_VIDEOS_PATH = "/app/videos"
 CONTAINER_RESULTS_PATH = "/app/results"
+CONTAINER_TEMP_PATH = "/app/temp"
 
 # File upload configuration
 ALLOWED_VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".webm"}
