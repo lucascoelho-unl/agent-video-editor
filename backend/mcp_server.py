@@ -7,10 +7,12 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool
 
-from backend.tools.docker_tools import get_video_by_filename, list_videos_in_container
-
-# Import the actual tool logic
-from backend.tools.video_tools import delete_video_from_working_dir, merge_videos
+from backend.tools.tools import (
+    delete_video_from_container,
+    get_video_by_filename,
+    list_videos_in_container,
+    merge_videos_in_container,
+)
 
 
 async def create_mcp_server():
@@ -21,10 +23,10 @@ async def create_mcp_server():
     )
 
     tool_logic_registry = {
-        "merge_videos": merge_videos,
         "list_videos_in_container": list_videos_in_container,
         "get_video_by_filename": get_video_by_filename,
-        "delete_video_from_working_dir": delete_video_from_working_dir,
+        "merge_videos_in_container": merge_videos_in_container,
+        "delete_video_from_container": delete_video_from_container,
     }
 
     @server.list_tools()
@@ -33,28 +35,6 @@ async def create_mcp_server():
         Creates and returns a list of all tools available on the server.
         """
         return [
-            Tool(
-                name="merge_videos",
-                description="Merges two videos together and saves the result to a file.",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "video_path1": {
-                            "type": "string",
-                            "description": "Path to the first video file",
-                        },
-                        "video_path2": {
-                            "type": "string",
-                            "description": "Path to the second video file",
-                        },
-                        "output_path": {
-                            "type": "string",
-                            "description": "Path to save the merged video file",
-                        },
-                    },
-                    "required": ["video_path1", "video_path2", "output_path"],
-                },
-            ),
             Tool(
                 name="list_videos_in_container",
                 description="Lists all video files in the /app/data directory of the container.",
@@ -75,14 +55,40 @@ async def create_mcp_server():
                 },
             ),
             Tool(
-                name="delete_video_from_working_dir",
-                description="Deletes a video file from the agent's local working directory.",
+                name="merge_videos_in_container",
+                description="Merges two videos that are already inside the container.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "video1_filename": {
+                            "type": "string",
+                            "description": "The filename of the first video.",
+                        },
+                        "video2_filename": {
+                            "type": "string",
+                            "description": "The filename of the second video.",
+                        },
+                        "output_filename": {
+                            "type": "string",
+                            "description": "The filename for the merged video.",
+                        },
+                    },
+                    "required": [
+                        "video1_filename",
+                        "video2_filename",
+                        "output_filename",
+                    ],
+                },
+            ),
+            Tool(
+                name="delete_video_from_container",
+                description="Deletes a video from the /app/videos directory in the container.",
                 inputSchema={
                     "type": "object",
                     "properties": {
                         "filename": {
                             "type": "string",
-                            "description": "The name of the video file to delete.",
+                            "description": "The filename of the video to delete.",
                         }
                     },
                     "required": ["filename"],
