@@ -4,9 +4,9 @@ Docker Factory
 Factory functions for creating Docker services
 """
 
+from .config import CONTAINER_NAME
 from .manager import DockerManager
 from .video_service import VideoService
-from .config import CONTAINER_NAME
 
 
 def create_docker_manager(container_name: str = None) -> DockerManager:

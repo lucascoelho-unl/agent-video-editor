@@ -5,9 +5,9 @@ Simple FastAPI server for uploading videos to Docker container
 """
 
 import uvicorn
+from api.endpoints import router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.endpoints import router
 
 # Initialize FastAPI app
 app = FastAPI(

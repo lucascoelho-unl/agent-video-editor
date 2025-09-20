@@ -4,8 +4,8 @@ Video Upload API Endpoints
 Simple API for uploading videos to the Docker container
 """
 
-from fastapi import APIRouter, UploadFile, File
 from docker.factory import create_services
+from fastapi import APIRouter, File, UploadFile
 
 # Initialize router
 router = APIRouter(prefix="/api/v1", tags=["video"])

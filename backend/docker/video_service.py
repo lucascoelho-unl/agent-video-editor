@@ -5,16 +5,18 @@ Handles video-specific operations in the container
 """
 
 import os
-import tempfile
 import shutil
+import tempfile
 from typing import List, Tuple
-from fastapi import UploadFile, HTTPException
-from .manager import DockerManager
+
+from fastapi import HTTPException, UploadFile
+
 from .config import (
-    CONTAINER_VIDEOS_PATH,
-    CONTAINER_RESULTS_PATH,
     ALLOWED_VIDEO_EXTENSIONS,
+    CONTAINER_RESULTS_PATH,
+    CONTAINER_VIDEOS_PATH,
 )
+from .manager import DockerManager
 
 
 class VideoService:
