@@ -1,5 +1,5 @@
 // API service for communicating with the backend
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = 'http://localhost:8002/api/v1';
 
 // HTTP status codes
 const HTTP_STATUS = {

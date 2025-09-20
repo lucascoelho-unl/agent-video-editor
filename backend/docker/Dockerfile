@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir \
     moviepy
 
 # Create directories for videos and results
-RUN mkdir -p /app/videos /app/results /app/temp
+RUN mkdir -p /app/data /app/videos /app/results /app/temp
 
 # Keep container running
 CMD ["tail", "-f", "/dev/null"]

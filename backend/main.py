@@ -47,13 +47,13 @@ async def root():
 def main():
     """Run the FastAPI server"""
     print("Starting Video Upload API...")
-    print("API will be available at: http://localhost:8000")
+    print("API will be available at: http://localhost:8002")
     print("Make sure your Docker container is running: docker-compose up -d")
 
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
-        port=8000,
+        port=8002,
         reload=True,  # Enable hot reload for development
         log_level="info",
     )

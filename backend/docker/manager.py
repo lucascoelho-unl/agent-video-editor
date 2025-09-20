@@ -65,13 +65,16 @@ class DockerManager:
     def exec_command(self, command: str) -> Tuple[bool, str]:
         """Execute command in container using subprocess"""
         try:
+            # Use 'sh -c' to properly handle complex commands with quotes and pipes
+            full_command = ["docker", "exec", self.container_name, "sh", "-c", command]
             result = subprocess.run(
-                ["docker", "exec", self.container_name] + command.split(),
+                full_command,
                 capture_output=True,
                 text=True,
-                timeout=10,
+                timeout=30,  # Increased timeout for video processing
             )
-            return (result.returncode == 0, result.stdout.strip())
+            output = result.stdout.strip() or result.stderr.strip()
+            return (result.returncode == 0, output)
         except Exception as e:
             return (False, str(e))
 

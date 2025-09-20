@@ -1,3 +1,5 @@
+import os
+
 from moviepy import VideoFileClip, concatenate_videoclips
 
 
@@ -31,3 +33,27 @@ async def merge_videos(video_path1: str, video_path2: str, output_path: str):
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
+
+
+async def delete_video_from_working_dir(filename: str) -> str:
+    """
+    Deletes a video file from the agent's local working directory.
+
+    Args:
+        filename (str): The name of the video file to delete.
+    """
+    try:
+        # Define the path to the agent's downloads directory
+        agent_downloads_path = os.path.join(
+            os.path.dirname(__file__), "..", "agent", "downloads"
+        )
+        file_path = os.path.join(agent_downloads_path, filename)
+
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            return f"Successfully deleted {filename} from the working directory."
+        else:
+            return f"Error: {filename} not found in the working directory."
+
+    except Exception as e:
+        return f"An error occurred: {str(e)}"

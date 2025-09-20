@@ -7,8 +7,10 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool
 
+from backend.tools.docker_tools import get_video_by_filename, list_videos_in_container
+
 # Import the actual tool logic
-from tools.video_tools import merge_videos
+from backend.tools.video_tools import delete_video_from_working_dir, merge_videos
 
 
 async def create_mcp_server():
@@ -20,6 +22,9 @@ async def create_mcp_server():
 
     tool_logic_registry = {
         "merge_videos": merge_videos,
+        "list_videos_in_container": list_videos_in_container,
+        "get_video_by_filename": get_video_by_filename,
+        "delete_video_from_working_dir": delete_video_from_working_dir,
     }
 
     @server.list_tools()
@@ -49,7 +54,40 @@ async def create_mcp_server():
                     },
                     "required": ["video_path1", "video_path2", "output_path"],
                 },
-            )
+            ),
+            Tool(
+                name="list_videos_in_container",
+                description="Lists all video files in the /app/data directory of the container.",
+                inputSchema={"type": "object", "properties": {}},
+            ),
+            Tool(
+                name="get_video_by_filename",
+                description="Downloads a video from the container to the local agent downloads directory.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "filename": {
+                            "type": "string",
+                            "description": "The filename of the video to download.",
+                        }
+                    },
+                    "required": ["filename"],
+                },
+            ),
+            Tool(
+                name="delete_video_from_working_dir",
+                description="Deletes a video file from the agent's local working directory.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "filename": {
+                            "type": "string",
+                            "description": "The name of the video file to delete.",
+                        }
+                    },
+                    "required": ["filename"],
+                },
+            ),
         ]
 
     @server.call_tool()

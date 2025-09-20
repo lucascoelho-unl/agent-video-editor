@@ -12,6 +12,7 @@ from typing import List, Tuple
 from fastapi import HTTPException, UploadFile
 
 from .config import (
+    AGENT_DOWNLOADS_PATH,
     ALLOWED_VIDEO_EXTENSIONS,
     CONTAINER_RESULTS_PATH,
     CONTAINER_VIDEOS_PATH,
@@ -105,6 +106,27 @@ class VideoService:
             "videos": videos if videos_success else [],
             "results": results if results_success else [],
         }
+
+    def get_video_by_filename(self, filename: str) -> str:
+        """Downloads a video from the container to the local agent downloads directory."""
+        self.ensure_container_running()
+
+        # Ensure the local downloads directory exists
+        os.makedirs(AGENT_DOWNLOADS_PATH, exist_ok=True)
+
+        container_path = f"{CONTAINER_VIDEOS_PATH}/{filename}"
+        local_path = os.path.join(AGENT_DOWNLOADS_PATH, filename)
+
+        # Copy the file from the container
+        success = self.docker.copy_file_from_container(container_path, local_path)
+
+        if success:
+            return local_path
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Video '{filename}' not found in container or could not be downloaded.",
+            )
 
     def delete_video(self, filename: str) -> dict:
         """Delete a video from the container"""
