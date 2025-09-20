@@ -1,6 +1,6 @@
 services:
   video-tools:
-    build: ./backend
+    build: ./backend/docker
     container_name: video-editor-tools
     # No volume mounts - videos stay in container only
     environment:
