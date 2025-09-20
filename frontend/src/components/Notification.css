@@ -26,8 +26,8 @@
 }
 
 .notification.error {
-  background-color: #7f1d1d;
-  border: 1px solid #991b1b;
+  background-color: #730a0a;
+  border: 1px solid #7a0505;
 }
 
 .notification.warning {
