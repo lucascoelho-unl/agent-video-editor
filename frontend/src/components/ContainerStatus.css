@@ -1,0 +1,187 @@
+.container-status {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto 2rem auto;
+}
+
+.status-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid;
+  transition: all 0.2s ease;
+}
+
+.status-card.running {
+  background-color: #064e3b;
+  border-color: #065f46;
+}
+
+.status-card.stopped {
+  background-color: #7f1d1d;
+  border-color: #991b1b;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.status-dot.running {
+  background-color: #10b981;
+}
+
+.status-dot.stopped {
+  background-color: #ef4444;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.status-text {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.status-card.running .status-text {
+  color: #6ee7b7;
+}
+
+.status-card.stopped .status-text {
+  color: #fca5a5;
+}
+
+.status-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.status-message {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.container-id {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #64748b;
+  font-family: monospace;
+}
+
+.refresh-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.refresh-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.status-loading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background-color: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 8px;
+}
+
+/* Loading dots styles moved to utilities.css */
+
+.status-loading span {
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.status-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background-color: #7f1d1d;
+  border: 1px solid #991b1b;
+  border-radius: 8px;
+}
+
+.error-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.error-content {
+  flex: 1;
+}
+
+.error-content h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fca5a5;
+}
+
+.error-content p {
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  color: #f87171;
+}
+
+.retry-btn {
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.25rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: background-color 0.2s ease;
+}
+
+.retry-btn:hover {
+  background-color: #b91c1c;
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .status-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+  
+  .status-indicator {
+    justify-content: center;
+  }
+  
+  .status-details {
+    text-align: center;
+  }
+  
+  .refresh-btn {
+    align-self: center;
+  }
+}

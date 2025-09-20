@@ -1,0 +1,28 @@
+.error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  padding: 2rem;
+}
+
+.error-content {
+  text-align: center;
+  max-width: 400px;
+  padding: 2rem;
+  background-color: #7f1d1d;
+  border: 1px solid #991b1b;
+  border-radius: 8px;
+}
+
+.error-content h2 {
+  margin: 0 0 1rem 0;
+  color: #fca5a5;
+  font-size: 1.5rem;
+}
+
+.error-content p {
+  margin: 0 0 1.5rem 0;
+  color: #f87171;
+  line-height: 1.5;
+}
