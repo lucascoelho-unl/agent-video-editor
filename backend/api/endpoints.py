@@ -30,7 +30,7 @@ async def check_container_status():
 async def upload_video(file: UploadFile = File(...)):
     """
     Upload a video file to the Docker container
-    
+
     Supported formats: mp4, avi, mov, mkv, webm
     """
     return video_service.upload_video(file)

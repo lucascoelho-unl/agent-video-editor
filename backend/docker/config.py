@@ -10,7 +10,7 @@ CONTAINER_VIDEOS_PATH = "/app/videos"
 CONTAINER_RESULTS_PATH = "/app/results"
 
 # File upload configuration
-ALLOWED_VIDEO_EXTENSIONS = {'.mp4', '.avi', '.mov', '.mkv', '.webm'}
+ALLOWED_VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".webm"}
 MAX_FILE_SIZE = 500 * 1024 * 1024  # 500MB
 
 # Docker command timeouts

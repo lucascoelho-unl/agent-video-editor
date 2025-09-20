@@ -71,11 +71,6 @@ function App() {
             </section>
           </div>
         </main>
-
-        <footer className="app-footer">
-          <p>Built with React & FastAPI</p>
-        </footer>
-
         {/* Notifications */}
         {notifications.map(notification => (
           <Notification

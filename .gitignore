@@ -124,6 +124,10 @@ ipython_config.py
 #   in the .venv directory. It is recommended not to include this directory in version control.
 .pixi
 
+.prettierrc
+.prettierignore
+pyproject.toml
+
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
 
@@ -144,6 +148,7 @@ ENV/
 env.bak/
 venv.bak/
 
+.vscode/
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -347,4 +352,63 @@ dist
 # Vite files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
-.vite/
+
+# Development and formatting tools
+.prettierrc
+.prettierignore
+pyproject.toml
+
+# VS Code settings (optional - some teams prefer to commit these)
+.vscode/settings.json
+.vscode/extensions.json
+
+# Python formatting cache
+.black
+.isort.cfg
+
+# MyPy cache
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Flake8 cache
+.flake8
+
+# Coverage reports
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker volumes and data
+docker-data/
+volumes/
+
+# Backup files
+*.bak
+*.backup
+*.old

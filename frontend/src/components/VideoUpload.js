@@ -21,7 +21,7 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
     if (!ALLOWED_TYPES.includes(file.type)) {
       throw new Error(`Unsupported file type. Please upload ${SUPPORTED_FORMATS} files.`);
     }
-    
+
     if (file.size > MAX_FILE_SIZE) {
       throw new Error(`File size too large. Maximum size is ${MAX_FILE_SIZE / (1024 * 1024)}MB.`);
     }
@@ -50,7 +50,7 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
   const handleUpload = async (files) => {
     try {
       const validFiles = validateFiles(files);
-      
+
       if (validFiles.length === 0) {
         throw new Error('No valid files to upload.');
       }
@@ -72,7 +72,7 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
 
           const result = await apiService.uploadVideo(file);
           results.push(result);
-          
+
           setUploadProgress(prev => ({
             ...prev,
             [file.name]: { status: 'completed', progress: 100 }
@@ -113,7 +113,7 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
   const handleDrop = useCallback((e) => {
     e.preventDefault();
     setIsDragOver(false);
-    
+
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
       handleUpload(files);
@@ -171,11 +171,11 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
           <div className="upload-content">
             <div className="upload-icon">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14,2 14,8 20,8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-                <polyline points="10,9 9,9 8,9"/>
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14,2 14,8 20,8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10,9 9,9 8,9" />
               </svg>
             </div>
             <h3>Upload Videos</h3>

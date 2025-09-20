@@ -25,7 +25,7 @@ class ApiService {
   async _handleResponse(response) {
     if (!response.ok) {
       let errorMessage = ERROR_MESSAGES.NETWORK_ERROR;
-      
+
       try {
         const error = await response.json();
         errorMessage = error.detail || errorMessage;
@@ -46,10 +46,10 @@ class ApiService {
             break;
         }
       }
-      
+
       throw new Error(errorMessage);
     }
-    
+
     return response.json();
   }
 

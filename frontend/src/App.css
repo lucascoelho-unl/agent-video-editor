@@ -84,19 +84,19 @@ body {
   .header-content h1 {
     font-size: 2rem;
   }
-  
+
   .header-content p {
     font-size: 1rem;
   }
-  
+
   .app-main {
     padding: 1rem 0;
   }
-  
+
   .container {
     padding: 0 0.75rem;
   }
-  
+
   .upload-section {
     margin-bottom: 2rem;
   }
@@ -106,11 +106,11 @@ body {
   .header-content h1 {
     font-size: 1.75rem;
   }
-  
+
   .app-header {
     padding: 1.5rem 0;
   }
-  
+
   .app-main {
     padding: 0.75rem 0;
   }

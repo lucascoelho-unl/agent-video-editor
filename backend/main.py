@@ -13,7 +13,7 @@ from api.endpoints import router
 app = FastAPI(
     title="Video Upload API",
     description="Simple API for uploading videos to Docker container",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Add CORS middleware
@@ -28,6 +28,7 @@ app.add_middleware(
 # Include the API routes
 app.include_router(router)
 
+
 @app.get("/")
 async def root():
     """Root endpoint"""
@@ -38,23 +39,25 @@ async def root():
         "endpoints": {
             "upload": "/api/v1/upload",
             "list_videos": "/api/v1/videos",
-            "container_status": "/api/v1/container/status"
-        }
+            "container_status": "/api/v1/container/status",
+        },
     }
+
 
 def main():
     """Run the FastAPI server"""
     print("Starting Video Upload API...")
     print("API will be available at: http://localhost:8000")
     print("Make sure your Docker container is running: docker-compose up -d")
-    
+
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
         port=8000,
         reload=True,  # Enable hot reload for development
-        log_level="info"
+        log_level="info",
     )
+
 
 if __name__ == "__main__":
     main()

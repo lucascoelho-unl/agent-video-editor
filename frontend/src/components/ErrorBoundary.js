@@ -21,8 +21,8 @@ class ErrorBoundary extends React.Component {
           <div className="error-content">
             <h2>Something went wrong</h2>
             <p>An unexpected error occurred. Please refresh the page to try again.</p>
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className="btn btn-primary"
             >
               Refresh Page
