@@ -22,6 +22,11 @@ function App() {
   const handleUploadSuccess = (result) => {
     addNotification(result.message, 'success');
     setRefreshTrigger(prev => prev + 1);
+    
+    // If there were partial errors, show them as warnings
+    if (result.errors && result.errors.length > 0) {
+      addNotification(`Some files had issues: ${result.errors.join(', ')}`, 'warning');
+    }
   };
 
   const handleUploadError = (error) => {

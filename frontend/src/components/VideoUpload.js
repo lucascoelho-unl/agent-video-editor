@@ -10,6 +10,8 @@ const SUPPORTED_FORMATS = 'MP4, AVI, MOV, MKV, WebM';
 const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadQueue, setUploadQueue] = useState([]);
+  const [uploadProgress, setUploadProgress] = useState({});
 
   const validateFile = (file) => {
     if (!file) {
@@ -25,18 +27,85 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
     }
   };
 
-  const handleUpload = async (file) => {
-    try {
-      validateFile(file);
-      setIsUploading(true);
+  const validateFiles = (files) => {
+    const validFiles = [];
+    const errors = [];
 
-      const result = await apiService.uploadVideo(file);
+    Array.from(files).forEach((file, index) => {
+      try {
+        validateFile(file);
+        validFiles.push(file);
+      } catch (error) {
+        errors.push(`${file.name}: ${error.message}`);
+      }
+    });
+
+    if (errors.length > 0) {
+      throw new Error(`Validation errors:\n${errors.join('\n')}`);
+    }
+
+    return validFiles;
+  };
+
+  const handleUpload = async (files) => {
+    try {
+      const validFiles = validateFiles(files);
       
+      if (validFiles.length === 0) {
+        throw new Error('No valid files to upload.');
+      }
+
+      setIsUploading(true);
+      setUploadQueue(validFiles);
+      setUploadProgress({});
+
+      const results = [];
+      const errors = [];
+
+      for (let i = 0; i < validFiles.length; i++) {
+        const file = validFiles[i];
+        try {
+          setUploadProgress(prev => ({
+            ...prev,
+            [file.name]: { status: 'uploading', progress: 0 }
+          }));
+
+          const result = await apiService.uploadVideo(file);
+          results.push(result);
+          
+          setUploadProgress(prev => ({
+            ...prev,
+            [file.name]: { status: 'completed', progress: 100 }
+          }));
+
+        } catch (error) {
+          errors.push(`${file.name}: ${error.message}`);
+          setUploadProgress(prev => ({
+            ...prev,
+            [file.name]: { status: 'error', progress: 0 }
+          }));
+        }
+      }
+
       setIsUploading(false);
-      onUploadSuccess?.(result);
+      setUploadQueue([]);
+
+      if (results.length > 0) {
+        onUploadSuccess?.({
+          message: `Successfully uploaded ${results.length} file(s)`,
+          results,
+          errors: errors.length > 0 ? errors : undefined
+        });
+      }
+
+      if (errors.length > 0) {
+        onUploadError?.(errors.join('\n'));
+      }
 
     } catch (error) {
       setIsUploading(false);
+      setUploadQueue([]);
+      setUploadProgress({});
       onUploadError?.(error.message);
     }
   };
@@ -47,7 +116,7 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
     
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
-      handleUpload(files[0]);
+      handleUpload(files);
     }
   }, []);
 
@@ -62,10 +131,12 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
   }, []);
 
   const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      handleUpload(file);
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      handleUpload(files);
     }
+    // Reset the input value so the same file can be selected again
+    e.target.value = '';
   };
 
   return (
@@ -79,7 +150,22 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
         {isUploading ? (
           <div className="upload-progress">
             <div className="loading-spinner"></div>
-            <p>Uploading video...</p>
+            <p>Uploading {uploadQueue.length} video(s)...</p>
+            {uploadQueue.length > 0 && (
+              <div className="upload-queue">
+                {uploadQueue.map((file, index) => (
+                  <div key={index} className="upload-item">
+                    <span className="file-name">{file.name}</span>
+                    <span className={`upload-status ${uploadProgress[file.name]?.status || 'pending'}`}>
+                      {uploadProgress[file.name]?.status === 'uploading' && '⏳'}
+                      {uploadProgress[file.name]?.status === 'completed' && '✅'}
+                      {uploadProgress[file.name]?.status === 'error' && '❌'}
+                      {!uploadProgress[file.name] && '⏸️'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <div className="upload-content">
@@ -92,14 +178,18 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
                 <polyline points="10,9 9,9 8,9"/>
               </svg>
             </div>
-            <h3>Upload Video</h3>
-            <p>Drag and drop your video here, or click to browse</p>
+            <h3>Upload Videos</h3>
+            <p>Drag and drop your videos here, or click to browse</p>
             <div className="file-types">
               <span>Supported: {SUPPORTED_FORMATS}</span>
+            </div>
+            <div className="multiple-files-hint">
+              <span>📁 Multiple files supported</span>
             </div>
             <input
               type="file"
               accept="video/*"
+              multiple
               onChange={handleFileSelect}
               className="file-input"
               disabled={isUploading}
