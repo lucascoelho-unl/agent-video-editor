@@ -17,6 +17,10 @@ python-dotenv>=1.0.0
 # Video processing (for local development)
 opencv-python>=4.8.0
 pillow>=10.0.0
+moviepy>=1.0.0
 
 # Development
 pytest>=7.4.3
+
+# OpenAI
+openai
