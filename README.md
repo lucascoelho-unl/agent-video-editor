@@ -23,4 +23,4 @@ docker-compose logs -f
 
 docker-compose build --no-cache
 
-TODO: update list_videos_in_container() to return the correct data.
+TODO: Video merging bugs visual when more than one video is merged.
