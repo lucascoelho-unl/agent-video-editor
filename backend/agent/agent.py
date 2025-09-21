@@ -17,6 +17,7 @@ mcp_toolset = MCPToolset(
             command="python3",
             args=[mcp_server_path],
         ),
+        timeout=120,
     ),
 )
 
