@@ -4,16 +4,11 @@ import os
 import sys
 from typing import Tuple
 
-try:
-    from .scripts import merge_videos_script
-except ImportError:
-    # Handle case when running script directly
-    from scripts import merge_videos_script
-
 # Add project root to the Python path to allow running this script directly
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from backend.docker.factory import create_docker_manager, create_video_service
+from backend.tools.scripts import batch_merge_videos_script, merge_videos_script
 
 
 async def list_videos_in_container() -> str:
@@ -38,40 +33,61 @@ async def list_videos_in_container() -> str:
 
 
 async def merge_videos_in_container(
-    video1_filename: str, video2_filename: str, output_filename: str
+    video_filenames: list,
+    output_filename: str,
+    source_directory: str = "videos",
+    destination_directory: str = "results",
 ) -> str:
     """
-    Merges two videos that are already inside the container.
-    The result is saved to the /app/results directory in the container.
+    Merges one or more videos from a specified source directory and saves the result to a destination directory.
     """
+    if len(video_filenames) < 2:
+        return "Error: At least 2 videos are required for merging."
+
     docker_manager = create_docker_manager()
 
-    # Construct the python script to execute inside the container
-    video1_path = f"/app/videos/{video1_filename}"
-    video2_path = f"/app/videos/{video2_filename}"
-    output_path = f"/app/results/{output_filename}"
+    # Construct video paths
+    video_paths = [
+        f"/app/{source_directory}/{filename}" for filename in video_filenames
+    ]
+    output_path = f"/app/{destination_directory}/{output_filename}"
 
-    python_script = merge_videos_script(video1_path, video2_path, output_path)
+    python_script = batch_merge_videos_script(video_paths, output_path)
+
     success, output = docker_manager.execute_script(python_script)
 
     if success:
-        return output
+        return f"Successfully merged {len(video_filenames)} videos: {', '.join(video_filenames)}"
     else:
-        return f"Error merging videos in container: {output}"
+        return f"Error merging videos: {output}"
 
 
-async def delete_video_from_container(file_path: str) -> str:
+async def delete_videos_from_container(file_paths: list) -> str:
     """
-    Deletes a video from a specified path in the container (e.g., "videos/my_video.mp4").
+    Deletes one or more videos from the container using a list of relative paths.
     """
+    if not file_paths:
+        return "Error: No file paths provided for deletion."
+
     video_service = create_video_service()
-    try:
-        # The agent will provide a path like "videos/my_video.mp4".
-        # The video_service expects the path relative to the /app/ directory.
-        result = video_service.delete_video(file_path)
-        return result.get("message", "Video deleted successfully.")
-    except Exception as e:
-        return f"Error deleting video from container: {str(e)}"
+    results = []
+    errors = []
+
+    for file_path in file_paths:
+        try:
+            result = video_service.delete_video(file_path)
+            results.append(f"✅ {file_path}")
+        except Exception as e:
+            errors.append(f"❌ {file_path}: {str(e)}")
+
+    # Format the response
+    response_lines = [f"Batch delete completed: {len(file_paths)} files processed"]
+    if results:
+        response_lines.extend(results)
+    if errors:
+        response_lines.extend(errors)
+
+    return "\n".join(response_lines)
 
 
 async def main():

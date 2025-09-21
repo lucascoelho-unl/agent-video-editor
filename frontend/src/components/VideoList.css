@@ -209,6 +209,15 @@
   font-weight: 500;
 }
 
+.temp-badge {
+  background-color: #7c2d12;
+  color: #fed7aa;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
 .video-actions {
   display: flex;
   align-items: center;

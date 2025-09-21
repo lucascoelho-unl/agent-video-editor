@@ -14,3 +14,27 @@ try:
 except Exception as e:
     print(f'Error merging videos: {{str(e)}}')
 """
+
+
+def batch_merge_videos_script(video_paths, output_path):
+    return f"""
+from moviepy import VideoFileClip, concatenate_videoclips
+
+try:
+    clips = []
+    for video_path in {video_paths}:
+        clip = VideoFileClip(video_path)
+        clips.append(clip)
+    
+    final_clip = concatenate_videoclips(clips)
+    final_clip.write_videofile('{output_path}', codec='libx264')
+    
+    # Close all clips
+    for clip in clips:
+        clip.close()
+    final_clip.close()
+    
+    print(f'Successfully merged {len(video_paths)} videos into {output_path}')
+except Exception as e:
+    print(f'Error merging videos: {{str(e)}}')
+"""

@@ -117,7 +117,7 @@ class VideoService:
 
         Args:
             filename: Name of the video file
-            source: Source directory - "videos" or "results" (default: "results")
+            source: Source directory - "videos", "results", or "temp" (default: "results")
         """
         self.ensure_container_running()
 
@@ -126,9 +126,12 @@ class VideoService:
             container_path = f"{CONTAINER_VIDEOS_PATH}/{filename}"
         elif source == "results":
             container_path = f"{CONTAINER_RESULTS_PATH}/{filename}"
+        elif source == "temp":
+            container_path = f"{CONTAINER_TEMP_PATH}/{filename}"
         else:
             raise HTTPException(
-                status_code=400, detail="Invalid source. Must be 'videos' or 'results'."
+                status_code=400,
+                detail="Invalid source. Must be 'videos', 'results', or 'temp'.",
             )
 
         # Create a temporary file to hold the video

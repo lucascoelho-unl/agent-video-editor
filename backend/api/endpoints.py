@@ -53,7 +53,7 @@ async def download_video(filename: str, source: str = "results"):
 
     Args:
         filename: Name of the video file
-        source: Source directory - "videos" or "results" (default: "results")
+        source: Source directory - "videos", "results", or "temp" (default: "results")
     """
     temp_file_path = video_service.download_video(filename, source)
 

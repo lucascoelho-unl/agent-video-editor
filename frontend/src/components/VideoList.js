@@ -5,6 +5,7 @@ import './VideoList.css';
 const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
   const [videos, setVideos] = useState([]);
   const [results, setResults] = useState([]);
+  const [temp, setTemp] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deleting, setDeleting] = useState({});
@@ -18,6 +19,7 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
       const data = await apiService.getVideos();
       setVideos(data.videos || []);
       setResults(data.results || []);
+      setTemp(data.temp || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -35,6 +37,7 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
       await apiService.deleteVideo(filename);
       setVideos(prev => prev.filter(video => video !== filename));
       setResults(prev => prev.filter(result => result !== filename));
+      setTemp(prev => prev.filter(tempFile => tempFile !== filename));
       onDeleteSuccess?.(`Video "${filename}" deleted successfully`);
     } catch (err) {
       onDeleteError?.(err.message);
@@ -117,7 +120,7 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
         </button>
       </div>
 
-      {videos.length === 0 && results.length === 0 ? (
+      {videos.length === 0 && results.length === 0 && temp.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">📁</div>
           <p>No videos found in container</p>
@@ -218,6 +221,57 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
                         title="Delete result"
                       >
                         {deleting[result] ? '⏳' : '🗑️'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {temp.length > 0 && (
+            <div className="video-section">
+              <h3>🗂️ Temporary Files ({temp.length})</h3>
+              <div className="video-grid">
+                {temp.map((tempFile, index) => (
+                  <div key={index} className="video-item temp-item">
+                    <div className="video-info">
+                      <div className="video-icon">{getFileIcon(tempFile)}</div>
+                      <div className="video-details">
+                        <div className="video-name" title={tempFile}>
+                          {tempFile}
+                        </div>
+                        <div className="video-meta">
+                          <span className="video-type">
+                            {tempFile.split('.').pop().toUpperCase()}
+                          </span>
+                          <span className="temp-badge">Temporary</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="video-actions">
+                      <button
+                        onClick={() => handlePreview(tempFile, 'temp')}
+                        className="preview-btn"
+                        title="Preview video"
+                      >
+                        ▶️
+                      </button>
+                      <button
+                        onClick={() => handleDownload(tempFile, 'temp')}
+                        disabled={downloading[tempFile]}
+                        className="download-btn"
+                        title="Download video"
+                      >
+                        {downloading[tempFile] ? '⏳' : '⬇️'}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(tempFile)}
+                        disabled={deleting[tempFile]}
+                        className="delete-btn"
+                        title="Delete temporary file"
+                      >
+                        {deleting[tempFile] ? '⏳' : '🗑️'}
                       </button>
                     </div>
                   </div>

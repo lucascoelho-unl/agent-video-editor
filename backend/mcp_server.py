@@ -8,7 +8,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool
 from tools.tools import (
-    delete_video_from_container,
+    delete_videos_from_container,
     list_videos_in_container,
     merge_videos_in_container,
 )
@@ -24,7 +24,7 @@ async def create_mcp_server():
     tool_logic_registry = {
         "list_videos_in_container": list_videos_in_container,
         "merge_videos_in_container": merge_videos_in_container,
-        "delete_video_from_container": delete_video_from_container,
+        "delete_videos_from_container": delete_videos_from_container,
     }
 
     @server.list_tools()
@@ -40,42 +40,44 @@ async def create_mcp_server():
             ),
             Tool(
                 name="merge_videos_in_container",
-                description="Merges two videos that are already inside the container.",
+                description="Merges one or more videos from the videos directory in the order provided. More efficient than merging pairs sequentially.",
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "video1_filename": {
-                            "type": "string",
-                            "description": "The filename of the first video.",
-                        },
-                        "video2_filename": {
-                            "type": "string",
-                            "description": "The filename of the second video.",
+                        "video_filenames": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "List of video filenames to merge in order (e.g., ['video1.mp4', 'video2.mp4', 'video3.mp4']).",
                         },
                         "output_filename": {
                             "type": "string",
                             "description": "The filename for the merged video.",
                         },
+                        "source_directory": {
+                            "type": "string",
+                            "description": "The directory to get the videos from (default: 'videos').",
+                        },
+                        "destination_directory": {
+                            "type": "string",
+                            "description": "The directory to save the merged video to (default: 'results').",
+                        },
                     },
-                    "required": [
-                        "video1_filename",
-                        "video2_filename",
-                        "output_filename",
-                    ],
+                    "required": ["video_filenames", "output_filename"],
                 },
             ),
             Tool(
-                name="delete_video_from_container",
-                description='Deletes a video from the container using a relative path (e.g., "videos/my_video.mp4", "results/output.mp4").',
+                name="delete_videos_from_container",
+                description="Deletes one or more videos from the container using a list of relative paths. More efficient than deleting files one by one.",
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "file_path": {
-                            "type": "string",
-                            "description": 'The relative path of the video to delete (e.g., "videos/my_video.mp4").',
+                        "file_paths": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": 'List of relative paths to delete (e.g., ["videos/video1.mp4", "results/output.mp4", "temp/temp_file.mp4"]).',
                         }
                     },
-                    "required": ["file_path"],
+                    "required": ["file_paths"],
                 },
             ),
         ]
