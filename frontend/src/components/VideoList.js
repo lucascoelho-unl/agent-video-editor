@@ -31,10 +31,10 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
     fetchVideos();
   }, [refreshTrigger]);
 
-  const handleDelete = async filename => {
+  const handleDelete = async (filename, source = 'videos') => {
     try {
       setDeleting(prev => ({ ...prev, [filename]: true }));
-      await apiService.deleteVideo(filename);
+      await apiService.deleteVideo(filename, source);
       setVideos(prev => prev.filter(video => video !== filename));
       setResults(prev => prev.filter(result => result !== filename));
       setTemp(prev => prev.filter(tempFile => tempFile !== filename));
@@ -164,7 +164,7 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
                         {downloading[video] ? '⏳' : '⬇️'}
                       </button>
                       <button
-                        onClick={() => handleDelete(video)}
+                        onClick={() => handleDelete(video, 'videos')}
                         disabled={deleting[video]}
                         className="delete-btn"
                         title="Delete video"
@@ -215,7 +215,7 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
                         {downloading[result] ? '⏳' : '⬇️'}
                       </button>
                       <button
-                        onClick={() => handleDelete(result)}
+                        onClick={() => handleDelete(result, 'results')}
                         disabled={deleting[result]}
                         className="delete-btn"
                         title="Delete result"
@@ -266,7 +266,7 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
                         {downloading[tempFile] ? '⏳' : '⬇️'}
                       </button>
                       <button
-                        onClick={() => handleDelete(tempFile)}
+                        onClick={() => handleDelete(tempFile, 'temp')}
                         disabled={deleting[tempFile]}
                         className="delete-btn"
                         title="Delete temporary file"

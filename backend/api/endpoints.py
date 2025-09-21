@@ -70,6 +70,13 @@ async def download_video(filename: str, source: str = "results"):
 
 
 @router.delete("/videos/{filename}")
-async def delete_video(filename: str):
-    """Delete a video from the container"""
-    return video_service.delete_video(filename)
+async def delete_video(filename: str, source: str = "videos"):
+    """
+    Delete a video from the container.
+
+    Args:
+        filename: Name of the video file
+        source: Source directory - "videos", "results", or "temp" (default: "videos")
+    """
+    file_path = f"{source}/{filename}"
+    return video_service.delete_video(file_path)

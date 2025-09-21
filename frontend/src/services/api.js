@@ -70,10 +70,13 @@ class ApiService {
     return this._handleResponse(response);
   }
 
-  async deleteVideo(filename) {
-    const response = await fetch(`${API_BASE_URL}/videos/${filename}`, {
-      method: 'DELETE',
-    });
+  async deleteVideo(filename, source = 'videos') {
+    const response = await fetch(
+      `${API_BASE_URL}/videos/${filename}?source=${source}`,
+      {
+        method: 'DELETE',
+      }
+    );
 
     return this._handleResponse(response);
   }
