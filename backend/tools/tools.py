@@ -8,7 +8,7 @@ from typing import Tuple
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 from backend.docker.factory import create_docker_manager, create_video_service
-from backend.tools.scripts import batch_merge_videos_script, merge_videos_script
+from backend.tools.scripts import batch_merge_videos_script
 
 
 async def list_videos_in_container() -> str:
@@ -57,7 +57,7 @@ async def merge_videos_in_container(
     success, output = docker_manager.execute_script(python_script)
 
     if success:
-        return f"Successfully merged {len(video_filenames)} videos: {', '.join(video_filenames)}"
+        return f"Successfully merged {len(video_filenames)} videos: {', '.join(video_filenames)}\nOutput:\n{output}"
     else:
         return f"Error merging videos: {output}"
 

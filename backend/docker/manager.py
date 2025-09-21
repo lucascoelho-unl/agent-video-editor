@@ -11,6 +11,8 @@ from typing import Tuple
 
 import docker
 
+from .config import TIMEOUT
+
 
 class DockerManager:
     """Handles all Docker operations with fallback methods"""
@@ -49,7 +51,7 @@ class DockerManager:
                 ],
                 capture_output=True,
                 text=True,
-                timeout=10,
+                timeout=TIMEOUT,
             )
 
             if result.returncode == 0 and result.stdout.strip():
@@ -73,7 +75,7 @@ class DockerManager:
                 full_command,
                 capture_output=True,
                 text=True,
-                timeout=30,  # Increased timeout for video processing
+                timeout=TIMEOUT,  # Increased timeout for video processing
             )
             output = result.stdout.strip() or result.stderr.strip()
             return (result.returncode == 0, output)
@@ -87,7 +89,7 @@ class DockerManager:
                 ["docker", "cp", file_path, f"{self.container_name}:{container_path}"],
                 capture_output=True,
                 text=True,
-                timeout=30,
+                timeout=TIMEOUT,
             )
             return result.returncode == 0
         except Exception as e:
@@ -100,7 +102,7 @@ class DockerManager:
                 ["docker", "cp", f"{self.container_name}:{container_path}", local_path],
                 capture_output=True,
                 text=True,
-                timeout=30,
+                timeout=TIMEOUT,
             )
             return result.returncode == 0
         except Exception as e:

@@ -4,10 +4,11 @@ Video Upload API Endpoints
 Simple API for uploading videos to the Docker container
 """
 
+import mimetypes
 import os
 
 from docker.factory import create_services
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
 # Initialize router
@@ -15,6 +16,12 @@ router = APIRouter(prefix="/api/v1", tags=["video"])
 
 # Initialize services
 docker_manager, video_service = create_services()
+
+
+def get_media_type(filename: str) -> str:
+    """Determine the media type of a file based on its extension."""
+    media_type, _ = mimetypes.guess_type(filename)
+    return media_type or "application/octet-stream"
 
 
 @router.get("/")
@@ -56,6 +63,7 @@ async def download_video(filename: str, source: str = "results"):
         source: Source directory - "videos", "results", or "temp" (default: "results")
     """
     temp_file_path = video_service.download_video(filename, source)
+    media_type = get_media_type(filename)
 
     async def cleanup():
         if os.path.exists(temp_file_path):
@@ -63,7 +71,7 @@ async def download_video(filename: str, source: str = "results"):
 
     return FileResponse(
         path=temp_file_path,
-        media_type="video/mp4",
+        media_type=media_type,
         filename=filename,
         background=cleanup,
     )

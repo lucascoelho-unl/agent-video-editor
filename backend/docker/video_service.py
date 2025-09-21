@@ -135,7 +135,10 @@ class VideoService:
             )
 
         # Create a temporary file to hold the video
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+        file_extension = os.path.splitext(filename)[1]
+        temp_file = tempfile.NamedTemporaryFile(
+            delete=False, suffix=file_extension or ".mp4"
+        )
         local_path = temp_file.name
         temp_file.close()
 

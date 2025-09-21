@@ -1,6 +1,6 @@
 services:
   video-tools:
-    build: 
+    build:
       context: .
       dockerfile: docker/Dockerfile
     container_name: video-editor-tools
@@ -10,3 +10,10 @@ services:
     # Keep container running for video processing
     command: tail -f /dev/null
     restart: unless-stopped
+
+    # --- Add this section for resource limits ---
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'   # Limit to 4 CPU cores
+          memory: 4G    # Limit to 4 Gigabytes of memory

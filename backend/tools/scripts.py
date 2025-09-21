@@ -1,40 +1,33 @@
-def merge_videos_script(video1_path, video2_path, output_path):
-    return f"""
-from moviepy import VideoFileClip, concatenate_videoclips
+import sys
 
-try:
-    clip1 = VideoFileClip('{video1_path}')
-    clip2 = VideoFileClip('{video2_path}')
-    final_clip = concatenate_videoclips([clip1, clip2])
-    final_clip.write_videofile('{output_path}', codec='libx264')
-    clip1.close()
-    clip2.close()
-    final_clip.close()
-    print(f'Successfully merged videos into {output_path}')
-except Exception as e:
-    print(f'Error merging videos: {{str(e)}}')
-"""
+from moviepy import ColorClip, CompositeVideoClip, VideoFileClip
 
 
 def batch_merge_videos_script(video_paths, output_path):
     return f"""
+import sys
 from moviepy import VideoFileClip, concatenate_videoclips
 
 try:
-    clips = []
-    for video_path in {video_paths}:
-        clip = VideoFileClip(video_path)
-        clips.append(clip)
-    
-    final_clip = concatenate_videoclips(clips)
-    final_clip.write_videofile('{output_path}', codec='libx264')
+    # Load all video clips
+    clips = [VideoFileClip(video_path) for video_path in {video_paths}]
+
+    # Concatenate the clips
+    # method="compose" handles clips of different sizes by creating a
+    # background canvas and centering each clip.
+    final_clip = concatenate_videoclips(clips, method="compose")
+
+    # Write the result to a file
+    final_clip.write_videofile("{output_path}", codec='libx264', fps=24, threads=4, preset='superfast')
     
     # Close all clips
     for clip in clips:
         clip.close()
     final_clip.close()
-    
-    print(f'Successfully merged {len(video_paths)} videos into {output_path}')
+
+    print(f"Successfully merged {{len(clips)}} videos into {output_path}")
+
 except Exception as e:
-    print(f'Error merging videos: {{str(e)}}')
+    print(f"Error merging videos: {{str(e)}}")
+    sys.exit(1)
 """

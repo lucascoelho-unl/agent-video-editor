@@ -22,3 +22,5 @@ DOCKER_COPY_TIMEOUT = 30
 AGENT_DOWNLOADS_PATH = os.path.join(
     os.path.dirname(__file__), "..", "agent", "downloads"
 )
+
+TIMEOUT = 120

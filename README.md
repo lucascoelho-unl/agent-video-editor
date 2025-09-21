@@ -23,4 +23,5 @@ docker-compose logs -f
 
 docker-compose build --no-cache
 
-TODO: Video merging bugs visual when more than one video is merged.
+TODO: Rebuild Container and test more threads and more CPUs (remember to time it)
+TODO: Create video processing to store information in the container. Video processing whenever it is uploaded with transctips, time stamps, metadata etc
