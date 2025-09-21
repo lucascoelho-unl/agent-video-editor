@@ -4,8 +4,11 @@ Video Upload API Endpoints
 Simple API for uploading videos to the Docker container
 """
 
+import os
+
 from docker.factory import create_services
 from fastapi import APIRouter, File, UploadFile
+from fastapi.responses import FileResponse
 
 # Initialize router
 router = APIRouter(prefix="/api/v1", tags=["video"])
@@ -40,6 +43,26 @@ async def upload_video(file: UploadFile = File(...)):
 async def list_videos():
     """List all videos in the container"""
     return video_service.list_videos()
+
+
+@router.get("/download/{filename}")
+async def download_video(filename: str):
+    """
+    Download a video file from the container's results directory.
+    The file is deleted from the server after being sent.
+    """
+    temp_file_path = video_service.download_video(filename)
+
+    async def cleanup():
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
+
+    return FileResponse(
+        path=temp_file_path,
+        media_type="video/mp4",
+        filename=filename,
+        background=cleanup,
+    )
 
 
 @router.delete("/videos/{filename}")

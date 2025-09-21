@@ -10,15 +10,16 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 from backend.docker.factory import create_docker_manager, create_video_service
 
 
-async def list_videos_in_container(
-    path: Literal["videos", "results", "temp"],
-) -> List[str]:
+async def list_videos_in_container() -> List[Tuple[str, List[str]]]:
     """
-    Lists all files in a specified directory of the container.
+    Lists all files in the 'videos', 'results', and 'temp' directories of the container.
+    Returns a list of tuples, where each tuple is (directory_name, file_list).
     """
     video_service = create_video_service()
     all_files = video_service.list_videos()
-    return all_files.get(path, [])
+
+    # Format the output as a list of tuples
+    return [(folder, files) for folder, files in all_files.items()]
 
 
 async def merge_videos_in_container(
@@ -36,20 +37,20 @@ async def merge_videos_in_container(
     output_path = f"/app/results/{output_filename}"
 
     python_script = f"""
-        from moviepy import VideoFileClip, concatenate_videoclips
+from moviepy import VideoFileClip, concatenate_videoclips
 
-        try:
-            clip1 = VideoFileClip('{video1_path}')
-            clip2 = VideoFileClip('{video2_path}')
-            final_clip = concatenate_videoclips([clip1, clip2])
-            final_clip.write_videofile('{output_path}', codec='libx264')
-            clip1.close()
-            clip2.close()
-            final_clip.close()
-            print(f'Successfully merged videos into {output_path}')
-        except Exception as e:
-            print(f'Error merging videos: {{str(e)}}')
-    """
+try:
+    clip1 = VideoFileClip('{video1_path}')
+    clip2 = VideoFileClip('{video2_path}')
+    final_clip = concatenate_videoclips([clip1, clip2])
+    final_clip.write_videofile('{output_path}', codec='libx264')
+    clip1.close()
+    clip2.close()
+    final_clip.close()
+    print(f'Successfully merged videos into {output_path}')
+except Exception as e:
+    print(f'Error merging videos: {{str(e)}}')
+"""
 
     # Execute the script
     success, output = docker_manager.execute_script(python_script)
@@ -79,17 +80,22 @@ async def main():
     print("--- Testing Video Tools ---")
 
     print("\n1. Listing videos in container...")
-    videos = await list_videos_in_container("videos")
+    dir_contents = await list_videos_in_container()
 
-    if not videos or "Error" in videos[0]:
-        print("Error listing videos or no videos found. Aborting test.")
-        if videos:
-            print(f"   Details: {videos[0]}")
+    if not dir_contents:
+        print("Error listing videos or no directories found. Aborting test.")
         return
 
-    print("   Found videos:")
-    for video in videos:
-        print(f"   - {video}")
+    videos = []
+    for folder, files in dir_contents:
+        print(f"   Contents of /{folder}:")
+        if files:
+            for file in files:
+                print(f"     - {file}")
+            if folder == "videos":
+                videos.extend(files)
+        else:
+            print("     (empty)")
 
     if len(videos) < 2:
         print("\nNot enough videos to test merging. Need at least 2.")

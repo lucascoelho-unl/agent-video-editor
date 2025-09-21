@@ -110,6 +110,34 @@ class VideoService:
             "temp": temp_files if temp_success else [],
         }
 
+    def download_video(self, filename: str) -> str:
+        """
+        Downloads a video from the container's results directory to a temporary local file.
+        Returns the path to the temporary file.
+        """
+        self.ensure_container_running()
+
+        container_path = f"{CONTAINER_RESULTS_PATH}/{filename}"
+
+        # Create a temporary file to hold the video
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+        local_path = temp_file.name
+        temp_file.close()
+
+        # Copy the file from the container
+        success = self.docker.copy_file_from_container(container_path, local_path)
+
+        if success:
+            return local_path
+        else:
+            # Clean up the temporary file if the copy fails
+            if os.path.exists(local_path):
+                os.remove(local_path)
+            raise HTTPException(
+                status_code=404,
+                detail=f"Video '{filename}' not found in container results or could not be downloaded.",
+            )
+
     def get_video_by_filename(self, filename: str) -> str:
         """Downloads a video from the container to the local agent downloads directory."""
         self.ensure_container_running()

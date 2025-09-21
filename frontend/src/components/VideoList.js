@@ -8,6 +8,8 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [deleting, setDeleting] = useState({});
+  const [previewVideo, setPreviewVideo] = useState(null);
+  const [downloading, setDownloading] = useState({});
 
   const fetchVideos = async () => {
     try {
@@ -27,7 +29,7 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
     fetchVideos();
   }, [refreshTrigger]);
 
-  const handleDelete = async (filename) => {
+  const handleDelete = async filename => {
     try {
       setDeleting(prev => ({ ...prev, [filename]: true }));
       await apiService.deleteVideo(filename);
@@ -41,7 +43,35 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
     }
   };
 
-  const getFileIcon = (filename) => {
+  const handleDownload = async filename => {
+    try {
+      setDownloading(prev => ({ ...prev, [filename]: true }));
+      const blob = await apiService.downloadVideo(filename);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      onDeleteError?.(err.message);
+    } finally {
+      setDownloading(prev => ({ ...prev, [filename]: false }));
+    }
+  };
+
+  const handlePreview = filename => {
+    const videoUrl = apiService.getDownloadUrl(filename);
+    setPreviewVideo({ filename, url: videoUrl });
+  };
+
+  const closePreview = () => {
+    setPreviewVideo(null);
+  };
+
+  const getFileIcon = filename => {
     const extension = filename.split('.').pop()?.toLowerCase();
     const iconMap = {
       mp4: '🎬',
@@ -152,6 +182,21 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
                     </div>
                     <div className="video-actions">
                       <button
+                        onClick={() => handlePreview(result)}
+                        className="preview-btn"
+                        title="Preview video"
+                      >
+                        ▶️
+                      </button>
+                      <button
+                        onClick={() => handleDownload(result)}
+                        disabled={downloading[result]}
+                        className="download-btn"
+                        title="Download video"
+                      >
+                        {downloading[result] ? '⏳' : '⬇️'}
+                      </button>
+                      <button
                         onClick={() => handleDelete(result)}
                         disabled={deleting[result]}
                         className="delete-btn"
@@ -165,6 +210,44 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Video Preview Modal */}
+      {previewVideo && (
+        <div className="video-preview-modal" onClick={closePreview}>
+          <div
+            className="video-preview-content"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="video-preview-header">
+              <h3>{previewVideo.filename}</h3>
+              <button className="close-btn" onClick={closePreview}>
+                ✕
+              </button>
+            </div>
+            <div className="video-preview-player">
+              <video
+                controls
+                autoPlay
+                src={previewVideo.url}
+                style={{ width: '100%', height: 'auto' }}
+              >
+                Your browser does not support the video tag.
+              </video>
+            </div>
+            <div className="video-preview-actions">
+              <button
+                onClick={() => handleDownload(previewVideo.filename)}
+                disabled={downloading[previewVideo.filename]}
+                className="download-btn"
+              >
+                {downloading[previewVideo.filename]
+                  ? '⏳ Downloading...'
+                  : '⬇️ Download'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

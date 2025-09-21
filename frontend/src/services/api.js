@@ -82,6 +82,18 @@ class ApiService {
     const response = await fetch(`${API_BASE_URL}/container/status`);
     return this._handleResponse(response);
   }
+
+  getDownloadUrl(filename) {
+    return `${API_BASE_URL}/download/${filename}`;
+  }
+
+  async downloadVideo(filename) {
+    const response = await fetch(this.getDownloadUrl(filename));
+    if (!response.ok) {
+      throw new Error('Failed to download video');
+    }
+    return response.blob();
+  }
 }
 
 export default new ApiService();

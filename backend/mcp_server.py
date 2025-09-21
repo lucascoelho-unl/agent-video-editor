@@ -9,7 +9,6 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Tool
 from tools.tools import (
     delete_video_from_container,
-    get_video_by_filename,
     list_videos_in_container,
     merge_videos_in_container,
 )
@@ -36,17 +35,8 @@ async def create_mcp_server():
         return [
             Tool(
                 name="list_videos_in_container",
-                description="Lists all files in a specified directory ('videos', 'results', or 'temp') of the container.",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "path": {
-                            "type": "string",
-                            "description": "The directory to list files from: 'videos', 'results', or 'temp'.",
-                        }
-                    },
-                    "required": ["path"],
-                },
+                description="Lists all files in the 'videos', 'results', and 'temp' directories. Returns a list of tuples, where each tuple is (directory_name, file_list).",
+                inputSchema={"type": "object", "properties": {}},
             ),
             Tool(
                 name="merge_videos_in_container",
