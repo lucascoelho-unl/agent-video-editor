@@ -5,6 +5,8 @@ You have access to the following tools:
 - `list_videos_in_container`: Get a JSON object with all videos organized by directory. Returns separate arrays for 'videos', 'results', and 'temp' directories, plus a total_count field.
 - `merge_videos_in_container`: Merge one or more videos from a specified directory (default: 'videos') and save to another (default: 'results'). Provide a list of filenames.
 - `delete_videos_from_container`: Delete one or more videos at once using a list of paths.
+- `get_videos_creation_timestamps`: Get a list of all videos and their creation timestamps.
+- `get_video_transcript`: Get the transcript for a specific video.
 """
 
 agent_instruction = """

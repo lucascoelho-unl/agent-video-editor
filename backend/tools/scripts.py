@@ -1,4 +1,4 @@
-from docker.config import NUM_CORES
+import json
 
 
 def batch_merge_videos_script(video_paths, output_path):
@@ -16,7 +16,7 @@ try:
     final_clip = concatenate_videoclips(clips, method="compose")
 
     # Write the result to a file
-    final_clip.write_videofile("{output_path}", codec='libx264', fps=24, threads={NUM_CORES}, preset='superfast')
+    final_clip.write_videofile("{output_path}", codec='libx264', fps=24, threads=4, preset='superfast')
     
     # Close all clips
     for clip in clips:
@@ -69,20 +69,28 @@ def read_video_data_script(file_path: str) -> str:
     Returns a Python script to read the content of a file.
     """
     return f"""
-import os
-
-if os.path.exists('{file_path}'):
+import json
+try:
     with open('{file_path}', 'r', encoding='utf-8') as f:
         print(f.read())
+except FileNotFoundError:
+    print('')
+except Exception as e:
+    print(json.dumps({{"error": str(e)}}))
 """
 
 
-def write_video_data_script(output_path: str, json_data_string: str) -> str:
+def write_video_data_script(data: dict) -> str:
     """
-    Returns a Python script to write data to a file.
+    Returns a Python script to write data to a JSON file.
     """
+    data_str = json.dumps(data, indent=2)
     return f"""
-import io
-with io.open('{output_path}', 'w', encoding='utf-8') as f:
-    f.write('''{json_data_string}''')
+import json
+try:
+    with open('/app/videos_data.txt', 'w') as f:
+        f.write('''{data_str}''')
+    print("Successfully wrote to videos_data.txt")
+except Exception as e:
+    print(json.dumps({{"error": str(e)}}))
 """

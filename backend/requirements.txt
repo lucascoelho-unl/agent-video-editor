@@ -13,3 +13,8 @@ beautifulsoup4>=4.12.3
 Pillow>=10.4.0
 openai-whisper
 ffmpeg-python
+google-generativeai
+google-cloud-aiplatform
+google-adk
+aiofiles
+asyncio

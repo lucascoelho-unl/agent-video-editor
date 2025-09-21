@@ -19,7 +19,7 @@ router = APIRouter(prefix="/api/v1", tags=["video"])
 docker_manager, video_service = create_services()
 
 
-def get_media_type(filename: str) -> str:
+async def get_media_type(filename: str) -> str:
     """Determine the media type of a file based on its extension."""
     media_type, _ = mimetypes.guess_type(filename)
     return media_type or "application/octet-stream"
@@ -34,7 +34,7 @@ async def health_check():
 @router.get("/container/status")
 async def check_container_status():
     """Check if the video processing container is running"""
-    return video_service.get_container_status()
+    return await video_service.get_container_status()
 
 
 @router.post("/upload")
@@ -44,7 +44,7 @@ async def upload_video(file: UploadFile = File(...)):
 
     Supported formats: mp4, avi, mov, mkv, webm
     """
-    response = video_service.upload_video(file)
+    response = await video_service.upload_video(file)
     await process_video(file.filename)
     return response
 
@@ -52,7 +52,7 @@ async def upload_video(file: UploadFile = File(...)):
 @router.get("/videos")
 async def list_videos():
     """List all videos in the container"""
-    return video_service.list_videos()
+    return await video_service.list_videos()
 
 
 @router.get("/download/{filename}")
@@ -65,8 +65,8 @@ async def download_video(filename: str, source: str = "results"):
         filename: Name of the video file
         source: Source directory - "videos", "results", or "temp" (default: "results")
     """
-    temp_file_path = video_service.download_video(filename, source)
-    media_type = get_media_type(filename)
+    temp_file_path = await video_service.download_video(filename, source)
+    media_type = await get_media_type(filename)
 
     async def cleanup():
         if os.path.exists(temp_file_path):
@@ -90,4 +90,4 @@ async def delete_video(filename: str, source: str = "videos"):
         source: Source directory - "videos", "results", or "temp" (default: "videos")
     """
     file_path = f"{source}/{filename}"
-    return video_service.delete_video(file_path)
+    return await video_service.delete_video(file_path)

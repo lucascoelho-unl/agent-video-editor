@@ -9,6 +9,8 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Tool
 from tools.tools import (
     delete_videos_from_container,
+    get_video_transcript,
+    get_videos_creation_timestamps,
     list_videos_in_container,
     merge_videos_in_container,
 )
@@ -25,6 +27,8 @@ async def create_mcp_server():
         "list_videos_in_container": list_videos_in_container,
         "merge_videos_in_container": merge_videos_in_container,
         "delete_videos_from_container": delete_videos_from_container,
+        "get_video_creation_timestamps": get_videos_creation_timestamps,
+        "get_video_transcript": get_video_transcript,
     }
 
     @server.list_tools()
@@ -78,6 +82,25 @@ async def create_mcp_server():
                         }
                     },
                     "required": ["file_paths"],
+                },
+            ),
+            Tool(
+                name="get_videos_creation_timestamps",
+                description="Retrieves the creation timestamps for all videos.",
+                inputSchema={"type": "object", "properties": {}},
+            ),
+            Tool(
+                name="get_video_transcript",
+                description="Retrieves the transcript for a specific video.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "video_filename": {
+                            "type": "string",
+                            "description": "The filename of the video to get the transcript for.",
+                        }
+                    },
+                    "required": ["video_filename"],
                 },
             ),
         ]

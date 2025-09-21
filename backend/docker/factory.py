@@ -4,24 +4,23 @@ Docker Factory
 Factory functions for creating Docker services
 """
 
-from .config import CONTAINER_NAME
 from .manager import DockerManager
 from .video_service import VideoService
 
 
-def create_docker_manager(container_name: str = None) -> DockerManager:
-    """Create a DockerManager instance"""
-    return DockerManager(container_name or CONTAINER_NAME)
+def create_docker_manager() -> DockerManager:
+    """Create and return a DockerManager instance"""
+    return DockerManager()
 
 
-def create_video_service(container_name: str = None) -> VideoService:
-    """Create a VideoService instance"""
-    docker_manager = create_docker_manager(container_name)
+def create_video_service() -> VideoService:
+    """Create and return a VideoService instance"""
+    docker_manager = create_docker_manager()
     return VideoService(docker_manager)
 
 
-def create_services(container_name: str = None) -> tuple[DockerManager, VideoService]:
-    """Create both DockerManager and VideoService instances"""
-    docker_manager = create_docker_manager(container_name)
+def create_services() -> tuple[DockerManager, VideoService]:
+    """Create and return a tuple of services"""
+    docker_manager = create_docker_manager()
     video_service = VideoService(docker_manager)
     return docker_manager, video_service

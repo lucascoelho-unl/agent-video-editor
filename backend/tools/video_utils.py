@@ -1,10 +1,12 @@
+import asyncio
 import json
+import os
 
-from docker.factory import create_docker_manager
-from tools.scripts import (
+from docker.factory import create_docker_manager, create_video_service
+
+from .scripts import (
     extract_transcript_script,
     extract_video_data_script,
-    read_video_data_script,
     write_video_data_script,
 )
 
@@ -44,71 +46,96 @@ def _process_transcript(raw_transcript: dict) -> dict:
     }
 
 
+async def get_transcript(video_path: str) -> str:
+    """
+    Retrieves the transcript for a specific video by executing a script in the container.
+    """
+    script = extract_transcript_script(video_path)
+    success, output = await create_docker_manager().execute_script(script)
+
+    if success:
+        try:
+            # Attempt to parse the JSON output from the script
+            transcript_data = json.loads(output)
+            # Return the transcript text, or the full JSON if 'text' is not available
+            return transcript_data.get("text", json.dumps(transcript_data))
+        except json.JSONDecodeError:
+            # If output is not JSON, return it as is
+            return output
+    else:
+        return f"Error retrieving transcript: {output}"
+
+
+async def update_videos_data_after_delete(file_paths: list) -> None:
+    """
+    Updates the videos_data.txt file after deleting videos.
+    """
+    videos_data = await create_video_service().get_videos_data()
+    if "videos" not in videos_data:
+        return  # No video data to update
+
+    # Create a set of filenames to be deleted for efficient lookup
+    filenames_to_delete = {os.path.basename(path) for path in file_paths}
+
+    # Filter out the deleted videos
+    videos_data["videos"] = {
+        filename: data
+        for filename, data in videos_data["videos"].items()
+        if filename not in filenames_to_delete
+    }
+
+    # Write the updated data back to the file
+    script = write_video_data_script(videos_data)
+    success, output = await create_docker_manager().execute_script(script)
+    if not success:
+        raise Exception(f"Error updating videos_data.txt: {output}")
+
+
 async def process_video(filename: str, video_dir: str = "videos") -> None:
     """
     Processes a video to extract metadata and transcript, then saves it to a JSON file.
     """
-    docker_manager = create_docker_manager()
-
-    # Define paths
     video_path = f"/app/{video_dir}/{filename}"
     output_path = "/app/videos_data.txt"
 
+    video_service = create_video_service()
+    docker_manager = create_docker_manager()
+
+    # Extract metadata and transcript concurrently
     metadata_script = extract_video_data_script(video_path)
-    metadata_success, metadata_output = docker_manager.execute_script(metadata_script)
+    transcript_script = extract_transcript_script(video_path)
+
+    results = await asyncio.gather(
+        docker_manager.execute_script(metadata_script),
+        docker_manager.execute_script(transcript_script),
+    )
+
+    metadata_success, metadata_output = results[0]
+    transcript_success, transcript_output = results[1]
 
     if not metadata_success:
         raise Exception(f"Error extracting metadata: {metadata_output}")
-
-    # Extract transcript
-    transcript_script = extract_transcript_script(video_path)
-    transcript_success, transcript_output = docker_manager.execute_script(
-        transcript_script
-    )
-
     if not transcript_success:
         raise Exception(f"Error extracting transcript: {transcript_output}")
 
-    # Prepare data
-    if metadata_success:
-        raw_metadata = json.loads(metadata_output)
-        metadata_content = _process_metadata(raw_metadata)
-    else:
-        metadata_content = {"error": metadata_output}
-
-    if transcript_success:
-        raw_transcript = json.loads(transcript_output)
-        transcript_content = _process_transcript(raw_transcript)
-    else:
-        transcript_content = {"error": transcript_output}
-
+    # Process and combine data
+    raw_metadata = json.loads(metadata_output)
+    raw_transcript = json.loads(transcript_output)
     video_data = {
         filename: {
-            "metadata": metadata_content,
-            "transcript": transcript_content,
+            "metadata": _process_metadata(raw_metadata),
+            "transcript": _process_transcript(raw_transcript),
         }
     }
 
-    # Read existing data, append new data, and write back
-    read_script = read_video_data_script(output_path)
-    read_success, existing_data_str = docker_manager.execute_script(read_script)
-    if not read_success:
-        raise Exception(f"Error reading existing data: {existing_data_str}")
-
-    existing_data = {}
-    if existing_data_str.strip():
-        existing_data = json.loads(existing_data_str)
-
+    # Update the JSON file
+    existing_data = await video_service.get_videos_data()
     if "videos" not in existing_data:
         existing_data["videos"] = {}
-
     existing_data["videos"].update(video_data)
 
-    # Safely encode the JSON data to a string
-    json_data_string = json.dumps(existing_data, indent=2, ensure_ascii=False)
-
-    # Write the data to the file using UTF-8 encoding
-    write_script = write_video_data_script(output_path, json_data_string)
-    write_success, write_output = docker_manager.execute_script(write_script)
-    if not write_success:
-        raise Exception(f"Error writing video data: {write_output}")
+    # Write the updated data back to the file
+    script = write_video_data_script(existing_data)
+    success, output = await docker_manager.execute_script(script)
+    if not success:
+        raise Exception(f"Error updating videos_data.txt: {output}")
