@@ -8,8 +8,9 @@ import mimetypes
 import os
 
 from docker.factory import create_services
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, File, UploadFile
 from fastapi.responses import FileResponse
+from tools.video_utils import process_video
 
 # Initialize router
 router = APIRouter(prefix="/api/v1", tags=["video"])
@@ -43,7 +44,9 @@ async def upload_video(file: UploadFile = File(...)):
 
     Supported formats: mp4, avi, mov, mkv, webm
     """
-    return video_service.upload_video(file)
+    response = video_service.upload_video(file)
+    await process_video(file.filename)
+    return response
 
 
 @router.get("/videos")

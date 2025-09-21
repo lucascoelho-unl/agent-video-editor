@@ -1,4 +1,4 @@
-from backend.docker.config import NUM_CORES
+from docker.config import NUM_CORES
 
 
 def batch_merge_videos_script(video_paths, output_path):
@@ -28,4 +28,61 @@ try:
 except Exception as e:
     print(f"Error merging videos: {{str(e)}}")
     sys.exit(1)
+"""
+
+
+def extract_video_data_script(video_path):
+    return f"""
+import json
+import subprocess
+
+try:
+    result = subprocess.run(
+        ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_format', '-show_streams', '{video_path}'],
+        capture_output=True,
+        text=True,
+        check=True
+    )
+    metadata = json.loads(result.stdout)
+    print(json.dumps(metadata, indent=2))
+except Exception as e:
+    print(json.dumps({{"error": str(e)}}))
+"""
+
+
+def extract_transcript_script(video_path):
+    return f"""
+import whisper
+import json
+
+try:
+    model = whisper.load_model('base')
+    result = model.transcribe('{video_path}')
+    print(json.dumps(result, indent=2))
+except Exception as e:
+    print(json.dumps({{"error": str(e)}}))
+"""
+
+
+def read_video_data_script(file_path: str) -> str:
+    """
+    Returns a Python script to read the content of a file.
+    """
+    return f"""
+import os
+
+if os.path.exists('{file_path}'):
+    with open('{file_path}', 'r', encoding='utf-8') as f:
+        print(f.read())
+"""
+
+
+def write_video_data_script(output_path: str, json_data_string: str) -> str:
+    """
+    Returns a Python script to write data to a file.
+    """
+    return f"""
+import io
+with io.open('{output_path}', 'w', encoding='utf-8') as f:
+    f.write('''{json_data_string}''')
 """
