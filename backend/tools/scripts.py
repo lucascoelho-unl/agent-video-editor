@@ -1,6 +1,4 @@
-import sys
-
-from moviepy import ColorClip, CompositeVideoClip, VideoFileClip
+from backend.docker.config import NUM_CORES
 
 
 def batch_merge_videos_script(video_paths, output_path):
@@ -18,7 +16,7 @@ try:
     final_clip = concatenate_videoclips(clips, method="compose")
 
     # Write the result to a file
-    final_clip.write_videofile("{output_path}", codec='libx264', fps=24, threads=4, preset='superfast')
+    final_clip.write_videofile("{output_path}", codec='libx264', fps=24, threads={NUM_CORES}, preset='superfast')
     
     # Close all clips
     for clip in clips:

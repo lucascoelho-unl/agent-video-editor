@@ -24,3 +24,5 @@ AGENT_DOWNLOADS_PATH = os.path.join(
 )
 
 TIMEOUT = 120
+
+NUM_CORES = 4
