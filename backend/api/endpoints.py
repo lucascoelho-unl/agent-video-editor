@@ -46,12 +46,16 @@ async def list_videos():
 
 
 @router.get("/download/{filename}")
-async def download_video(filename: str):
+async def download_video(filename: str, source: str = "results"):
     """
-    Download a video file from the container's results directory.
+    Download a video file from the container.
     The file is deleted from the server after being sent.
+
+    Args:
+        filename: Name of the video file
+        source: Source directory - "videos" or "results" (default: "results")
     """
-    temp_file_path = video_service.download_video(filename)
+    temp_file_path = video_service.download_video(filename, source)
 
     async def cleanup():
         if os.path.exists(temp_file_path):

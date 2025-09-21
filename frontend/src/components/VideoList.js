@@ -43,10 +43,10 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
     }
   };
 
-  const handleDownload = async filename => {
+  const handleDownload = async (filename, source = 'results') => {
     try {
       setDownloading(prev => ({ ...prev, [filename]: true }));
-      const blob = await apiService.downloadVideo(filename);
+      const blob = await apiService.downloadVideo(filename, source);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -62,9 +62,9 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
     }
   };
 
-  const handlePreview = filename => {
-    const videoUrl = apiService.getDownloadUrl(filename);
-    setPreviewVideo({ filename, url: videoUrl });
+  const handlePreview = (filename, source = 'results') => {
+    const videoUrl = apiService.getDownloadUrl(filename, source);
+    setPreviewVideo({ filename, url: videoUrl, source });
   };
 
   const closePreview = () => {
@@ -146,6 +146,21 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
                     </div>
                     <div className="video-actions">
                       <button
+                        onClick={() => handlePreview(video, 'videos')}
+                        className="preview-btn"
+                        title="Preview video"
+                      >
+                        ▶️
+                      </button>
+                      <button
+                        onClick={() => handleDownload(video, 'videos')}
+                        disabled={downloading[video]}
+                        className="download-btn"
+                        title="Download video"
+                      >
+                        {downloading[video] ? '⏳' : '⬇️'}
+                      </button>
+                      <button
                         onClick={() => handleDelete(video)}
                         disabled={deleting[video]}
                         className="delete-btn"
@@ -182,14 +197,14 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
                     </div>
                     <div className="video-actions">
                       <button
-                        onClick={() => handlePreview(result)}
+                        onClick={() => handlePreview(result, 'results')}
                         className="preview-btn"
                         title="Preview video"
                       >
                         ▶️
                       </button>
                       <button
-                        onClick={() => handleDownload(result)}
+                        onClick={() => handleDownload(result, 'results')}
                         disabled={downloading[result]}
                         className="download-btn"
                         title="Download video"
@@ -238,7 +253,9 @@ const VideoList = ({ refreshTrigger, onDeleteSuccess, onDeleteError }) => {
             </div>
             <div className="video-preview-actions">
               <button
-                onClick={() => handleDownload(previewVideo.filename)}
+                onClick={() =>
+                  handleDownload(previewVideo.filename, previewVideo.source)
+                }
                 disabled={downloading[previewVideo.filename]}
                 className="download-btn"
               >

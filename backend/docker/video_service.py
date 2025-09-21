@@ -110,14 +110,26 @@ class VideoService:
             "temp": temp_files if temp_success else [],
         }
 
-    def download_video(self, filename: str) -> str:
+    def download_video(self, filename: str, source: str = "results") -> str:
         """
-        Downloads a video from the container's results directory to a temporary local file.
+        Downloads a video from the container to a temporary local file.
         Returns the path to the temporary file.
+
+        Args:
+            filename: Name of the video file
+            source: Source directory - "videos" or "results" (default: "results")
         """
         self.ensure_container_running()
 
-        container_path = f"{CONTAINER_RESULTS_PATH}/{filename}"
+        # Determine the container path based on source
+        if source == "videos":
+            container_path = f"{CONTAINER_VIDEOS_PATH}/{filename}"
+        elif source == "results":
+            container_path = f"{CONTAINER_RESULTS_PATH}/{filename}"
+        else:
+            raise HTTPException(
+                status_code=400, detail="Invalid source. Must be 'videos' or 'results'."
+            )
 
         # Create a temporary file to hold the video
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
@@ -135,7 +147,7 @@ class VideoService:
                 os.remove(local_path)
             raise HTTPException(
                 status_code=404,
-                detail=f"Video '{filename}' not found in container results or could not be downloaded.",
+                detail=f"Video '{filename}' not found in container {source} or could not be downloaded.",
             )
 
     def get_video_by_filename(self, filename: str) -> str:

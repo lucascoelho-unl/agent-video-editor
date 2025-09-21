@@ -83,12 +83,12 @@ class ApiService {
     return this._handleResponse(response);
   }
 
-  getDownloadUrl(filename) {
-    return `${API_BASE_URL}/download/${filename}`;
+  getDownloadUrl(filename, source = 'results') {
+    return `${API_BASE_URL}/download/${filename}?source=${source}`;
   }
 
-  async downloadVideo(filename) {
-    const response = await fetch(this.getDownloadUrl(filename));
+  async downloadVideo(filename, source = 'results') {
+    const response = await fetch(this.getDownloadUrl(filename, source));
     if (!response.ok) {
       throw new Error('Failed to download video');
     }
