@@ -35,7 +35,7 @@ async def create_mcp_server():
         return [
             Tool(
                 name="list_videos_in_container",
-                description="Lists all files in the 'videos', 'results', and 'temp' directories. Returns a list of tuples, where each tuple is (directory_name, file_list).",
+                description="Lists all video files in the container organized by directory. Returns a JSON string with separate arrays for 'videos', 'results', and 'temp' directories, plus a total_count field.",
                 inputSchema={"type": "object", "properties": {}},
             ),
             Tool(
@@ -66,16 +66,16 @@ async def create_mcp_server():
             ),
             Tool(
                 name="delete_video_from_container",
-                description="Deletes a video from the /app/videos directory in the container.",
+                description='Deletes a video from the container using a relative path (e.g., "videos/my_video.mp4", "results/output.mp4").',
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "filename": {
+                        "file_path": {
                             "type": "string",
-                            "description": "The filename of the video to delete.",
+                            "description": 'The relative path of the video to delete (e.g., "videos/my_video.mp4").',
                         }
                     },
-                    "required": ["filename"],
+                    "required": ["file_path"],
                 },
             ),
         ]
@@ -87,7 +87,18 @@ async def create_mcp_server():
         """
         if name in tool_logic_registry:
             tool_function = tool_logic_registry[name]
-            return await tool_function(**arguments)
+            # The result from the tool is a JSON string.
+            result_str = await tool_function(**arguments)
+            # We need to wrap this in the format the ADK expects.
+            return {
+                "content": [
+                    {
+                        "TextContent": {
+                            "text": result_str,
+                        }
+                    }
+                ]
+            }
         else:
             raise Exception(f"Unknown tool called: {name}")
 

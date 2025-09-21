@@ -171,22 +171,28 @@ class VideoService:
                 detail=f"Video '{filename}' not found in container or could not be downloaded.",
             )
 
-    def delete_video(self, filename: str) -> dict:
-        """Delete a video from the container"""
+    def delete_video(self, file_path: str) -> dict:
+        """Delete a video from a specified path in the container"""
         self.ensure_container_running()
 
+        # Sanitize and construct the full path
+        if file_path.startswith("/"):
+            file_path = file_path[1:]
+
+        full_path = f"/app/{file_path}"
+
         # Delete video file
-        success = self.docker.delete_file(f"{CONTAINER_VIDEOS_PATH}/{filename}")
+        success = self.docker.delete_file(full_path)
 
         if success:
             return {
                 "success": True,
-                "message": f"Video '{filename}' deleted successfully",
+                "message": f"Video '{file_path}' deleted successfully",
             }
         else:
             raise HTTPException(
                 status_code=404,
-                detail=f"Video '{filename}' not found or could not be deleted",
+                detail=f"Video at '{file_path}' not found or could not be deleted",
             )
 
     def get_container_status(self) -> dict:
