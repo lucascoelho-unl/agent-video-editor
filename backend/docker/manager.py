@@ -4,6 +4,7 @@ Docker Manager for Video Processing Container
 Handles all Docker operations with fallback methods
 """
 
+import asyncio
 import os
 import subprocess
 import tempfile
@@ -37,91 +38,110 @@ class DockerManager:
                         "Cannot connect to Docker daemon. Make sure Docker is running."
                     )
 
-    def check_container_status(self) -> Tuple[bool, str]:
+    async def check_container_status(self) -> Tuple[bool, str]:
         """Check container status using subprocess (more reliable on macOS)"""
         try:
-            result = subprocess.run(
-                [
-                    "docker",
-                    "ps",
-                    "--filter",
-                    f"name={self.container_name}",
-                    "--format",
-                    "{{.Status}}",
-                ],
-                capture_output=True,
-                text=True,
-                timeout=TIMEOUT,
+            process = await asyncio.create_subprocess_exec(
+                "docker",
+                "ps",
+                "--filter",
+                f"name={self.container_name}",
+                "--format",
+                "{{.Status}}",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, stderr = await asyncio.wait_for(
+                process.communicate(), timeout=TIMEOUT
             )
 
-            if result.returncode == 0 and result.stdout.strip():
-                status = result.stdout.strip()
+            if process.returncode == 0 and stdout:
+                status = stdout.decode().strip()
                 return ("Up" in status, status)
             else:
                 return (False, "Container not found")
-        except subprocess.TimeoutExpired:
+        except asyncio.TimeoutError:
             return (False, "Docker command timeout")
         except FileNotFoundError:
             return (False, "Docker not found in PATH")
         except Exception as e:
             return (False, f"Error: {str(e)}")
 
-    def exec_command(self, command: str) -> Tuple[bool, str]:
-        """Execute command in container using subprocess"""
+    async def exec_command(self, command: str) -> Tuple[bool, str]:
+        """Execute command in container using asyncio subprocess"""
         try:
-            # Use 'sh -c' to properly handle complex commands with quotes and pipes
             full_command = ["docker", "exec", self.container_name, "sh", "-c", command]
-            result = subprocess.run(
-                full_command,
-                capture_output=True,
-                text=True,
-                timeout=TIMEOUT,  # Increased timeout for video processing
+            process = await asyncio.create_subprocess_exec(
+                *full_command,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
             )
-            output = result.stdout.strip() or result.stderr.strip()
-            return (result.returncode == 0, output)
+            stdout, stderr = await asyncio.wait_for(
+                process.communicate(), timeout=TIMEOUT
+            )
+            output = stdout.decode().strip() or stderr.decode().strip()
+            return (process.returncode == 0, output)
         except Exception as e:
             return (False, str(e))
 
-    def copy_file_to_container(self, file_path: str, container_path: str) -> bool:
-        """Copy file to container using subprocess"""
+    async def copy_file_to_container(self, file_path: str, container_path: str) -> bool:
+        """Copy file to container using asyncio subprocess"""
         try:
-            result = subprocess.run(
-                ["docker", "cp", file_path, f"{self.container_name}:{container_path}"],
-                capture_output=True,
-                text=True,
-                timeout=TIMEOUT,
+            process = await asyncio.create_subprocess_exec(
+                "docker",
+                "cp",
+                file_path,
+                f"{self.container_name}:{container_path}",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
             )
-            return result.returncode == 0
+            await asyncio.wait_for(process.communicate(), timeout=TIMEOUT)
+            return process.returncode == 0
         except Exception as e:
             return False
 
-    def copy_file_from_container(self, container_path: str, local_path: str) -> bool:
-        """Copy file from container using subprocess"""
+    async def copy_file_from_container(
+        self, container_path: str, local_path: str
+    ) -> bool:
+        """Copy file from container using asyncio subprocess"""
         try:
-            result = subprocess.run(
-                ["docker", "cp", f"{self.container_name}:{container_path}", local_path],
-                capture_output=True,
-                text=True,
-                timeout=TIMEOUT,
+            process = await asyncio.create_subprocess_exec(
+                "docker",
+                "cp",
+                f"{self.container_name}:{container_path}",
+                local_path,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
             )
-            return result.returncode == 0
+            await asyncio.wait_for(process.communicate(), timeout=TIMEOUT)
+            return process.returncode == 0
         except Exception as e:
             return False
 
-    def list_files(self, path: str) -> Tuple[bool, list]:
+    async def list_files(self, path: str) -> Tuple[bool, list]:
         """List files in container directory"""
-        success, output = self.exec_command(f"ls {path}")
+        success, output = await self.exec_command(f"ls {path}")
         if success and output:
             files = [f.strip() for f in output.split("\n") if f.strip()]
             return (True, files)
         return (False, [])
 
-    def delete_file(self, file_path: str) -> bool:
+    async def delete_file(self, file_path: str) -> bool:
         """Delete file in container"""
-        success, _ = self.exec_command(f"rm -f {file_path}")
+        success, _ = await self.exec_command(f"rm -f {file_path}")
         return success
 
-    def execute_script(
+    async def create_directory(self, path: str) -> bool:
+        """Create directory in container"""
+        success, _ = await self.exec_command(f"mkdir -p {path}")
+        return success
+
+    async def get_container_info(self) -> dict:
+        """Get detailed container information"""
+        is_running, status = await self.check_container_status()
+        return {"name": self.container_name, "running": is_running, "status": status}
+
+    async def execute_script(
         self, script_content: str, container_temp_path: str = "/app/temp"
     ) -> Tuple[bool, str]:
         """
@@ -144,14 +164,18 @@ class DockerManager:
             )
 
             # Copy the script to the container
-            if not self.copy_file_to_container(temp_script_path, container_script_path):
+            if not await self.copy_file_to_container(
+                temp_script_path, container_script_path
+            ):
                 return (False, "Failed to copy script to container.")
 
             # Execute the script in the container
-            success, output = self.exec_command(f"python3 {container_script_path}")
+            success, output = await self.exec_command(
+                f"python3 {container_script_path}"
+            )
 
             # Clean up the script from the container
-            self.delete_file(container_script_path)
+            await self.delete_file(container_script_path)
 
             return (success, output)
 

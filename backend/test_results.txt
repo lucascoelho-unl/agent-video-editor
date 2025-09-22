@@ -1,0 +1,1849 @@
+--- Testing list_videos_in_container Tool ---
+
+Execution time: 0.0831 seconds
+Tool Output:
+----------------------------------------
+{
+  "videos": [
+    "00538a96-f48e-4083-9c57-074c01b7a76e.MP4",
+    "6b4c5be1-bfd4-4dfd-bff8-a13b5767e735.MP4",
+    "804f2bd4-25c2-4eca-a7d4-25f1e04a73ed.MP4",
+    "807d1dab-6b21-458b-afab-2b7a3affec25.MP4",
+    "84ac8edc-ff8a-4bab-89e3-7523a8829bdb.MP4",
+    "8ae6aee0-556f-40de-a7cd-7cc871332fec.MP4",
+    "8bbd66ed-6762-4dd6-bef5-b2e8152a1fe8.MP4",
+    "97fa99bb-986d-4d7f-a8be-3ec4feb6575c.MP4",
+    "9f897407-6040-4973-af2a-ac55e7a861ad.MP4"
+  ],
+  "results": [],
+  "temp": [],
+  "total_count": 9
+}
+----------------------------------------
+
+✅ Test completed successfully!
+
+--- Testing merge_videos_in_container Tool ---
+
+Merging videos: ['00538a96-f48e-4083-9c57-074c01b7a76e.MP4', '6b4c5be1-bfd4-4dfd-bff8-a13b5767e735.MP4', '804f2bd4-25c2-4eca-a7d4-25f1e04a73ed.MP4', '807d1dab-6b21-458b-afab-2b7a3affec25.MP4', '84ac8edc-ff8a-4bab-89e3-7523a8829bdb.MP4', '8ae6aee0-556f-40de-a7cd-7cc871332fec.MP4', '8bbd66ed-6762-4dd6-bef5-b2e8152a1fe8.MP4', '97fa99bb-986d-4d7f-a8be-3ec4feb6575c.MP4', '9f897407-6040-4973-af2a-ac55e7a861ad.MP4']
+Processing new video: merged_test_video.mp4
+Execution time: 104.6687 seconds
+Tool Output:
+----------------------------------------
+Successfully merged 9 videos: 00538a96-f48e-4083-9c57-074c01b7a76e.MP4, 6b4c5be1-bfd4-4dfd-bff8-a13b5767e735.MP4, 804f2bd4-25c2-4eca-a7d4-25f1e04a73ed.MP4, 807d1dab-6b21-458b-afab-2b7a3affec25.MP4, 84ac8edc-ff8a-4bab-89e3-7523a8829bdb.MP4, 8ae6aee0-556f-40de-a7cd-7cc871332fec.MP4, 8bbd66ed-6762-4dd6-bef5-b2e8152a1fe8.MP4, 97fa99bb-986d-4d7f-a8be-3ec4feb6575c.MP4, 9f897407-6040-4973-af2a-ac55e7a861ad.MP4
+Output:
+MoviePy - Building video /app/results/merged_test_video.mp4.
+MoviePy - Writing audio in merged_test_videoTEMP_MPY_wvf_snd.mp3
+MoviePy - Done.
+MoviePy - Writing video /app/results/merged_test_video.mp4
+
+MoviePy - Done !
+MoviePy - video ready /app/results/merged_test_video.mp4
+Successfully merged 9 videos into /app/results/merged_test_video.mp4
+----------------------------------------
+
+✅ Test completed successfully!
+
+--- Testing get_videos_creation_timestamps Tool ---
+
+Execution time: 0.1171 seconds
+Tool Output:
+----------------------------------------
+[
+  {
+    "filename": "00538a96-f48e-4083-9c57-074c01b7a76e.MP4",
+    "creation_time": null
+  },
+  {
+    "filename": "6b4c5be1-bfd4-4dfd-bff8-a13b5767e735.MP4",
+    "creation_time": null
+  },
+  {
+    "filename": "804f2bd4-25c2-4eca-a7d4-25f1e04a73ed.MP4",
+    "creation_time": null
+  },
+  {
+    "filename": "807d1dab-6b21-458b-afab-2b7a3affec25.MP4",
+    "creation_time": null
+  },
+  {
+    "filename": "8ae6aee0-556f-40de-a7cd-7cc871332fec.MP4",
+    "creation_time": null
+  },
+  {
+    "filename": "8bbd66ed-6762-4dd6-bef5-b2e8152a1fe8.MP4",
+    "creation_time": null
+  },
+  {
+    "filename": "97fa99bb-986d-4d7f-a8be-3ec4feb6575c.MP4",
+    "creation_time": null
+  },
+  {
+    "filename": "9f897407-6040-4973-af2a-ac55e7a861ad.MP4",
+    "creation_time": null
+  },
+  {
+    "filename": "84ac8edc-ff8a-4bab-89e3-7523a8829bdb.MP4",
+    "creation_time": "2025-09-22T02:03:58.000000Z"
+  }
+]
+----------------------------------------
+
+✅ Test completed successfully!
+
+--- Testing get_video_transcript Tool ---
+
+Execution time: 0.1251 seconds
+Tool Output:
+----------------------------------------
+{
+  "00538a96-f48e-4083-9c57-074c01b7a76e.MP4": {
+    "text": " We're going to be there tomorrow, we're going to be there. No, we're going to have to be there. I think you're going to be there. You're going to be there. I think you're going to be there. Stop chatting.",
+    "segments": [
+      {
+        "id": 0,
+        "seek": 0,
+        "start": 0.0,
+        "end": 3.24,
+        "text": " We're going to be there tomorrow, we're going to be there."
+      },
+      {
+        "id": 1,
+        "seek": 0,
+        "start": 3.24,
+        "end": 5.24,
+        "text": " No, we're going to have to be there."
+      },
+      {
+        "id": 2,
+        "seek": 0,
+        "start": 5.24,
+        "end": 7.48,
+        "text": " I think you're going to be there."
+      },
+      {
+        "id": 3,
+        "seek": 0,
+        "start": 7.48,
+        "end": 8.48,
+        "text": " You're going to be there."
+      },
+      {
+        "id": 4,
+        "seek": 0,
+        "start": 8.48,
+        "end": 9.48,
+        "text": " I think you're going to be there."
+      },
+      {
+        "id": 5,
+        "seek": 0,
+        "start": 9.48,
+        "end": 10.48,
+        "text": " Stop chatting."
+      }
+    ],
+    "language": "en"
+  },
+  "6b4c5be1-bfd4-4dfd-bff8-a13b5767e735.MP4": {
+    "text": " \u00c9... Que parque? \u00c9 uma ser secativa. Que parque \u00e9 secativa. Avaro. Avaro. Avaro. Avaro. Avaro. Eu queria dizer que... \u00c9... \u00c9... Quando voc\u00ea volta assim, a gente nem percebe que... Que a falta que voc\u00ea faz, que voc\u00ea parece que... D\u00e1 o ano assim, na correria do dia a dia... A gente acaba de percebendo, s\u00f3 que a\u00ed voc\u00ea volta... Tipo assim, parece que a vida... Ela \u00e9 tipo assim... Partido em blocos. Ent\u00e3o eu tive assim... Quando tal se mestre aqui, sem voc\u00ea... A\u00ed a gente acaba tendo menos contato, n\u00e9? Mas quando voc\u00ea volta, parece que encaixa assim e a gente... A gente sempre tem muitos bons momentos. A gente sempre encontra muito e \u00e9 muito bom. E que passa muito r\u00e1pido, resta tr\u00eas meses. O voo... \u00c9... N\u00e3o nem parece que foram tr\u00eas vezes. E foi muito especial muito... \u00c9 muito especial. \u00c9 que eu fui ouvintir, fui ouvintir... \u00c9 que eu fui ouvintir.",
+    "segments": [
+      {
+        "id": 0,
+        "seek": 0,
+        "start": 0.0,
+        "end": 1.0,
+        "text": " \u00c9..."
+      },
+      {
+        "id": 1,
+        "seek": 0,
+        "start": 1.0,
+        "end": 2.0,
+        "text": " Que parque?"
+      },
+      {
+        "id": 2,
+        "seek": 0,
+        "start": 2.0,
+        "end": 3.0,
+        "text": " \u00c9 uma ser secativa."
+      },
+      {
+        "id": 3,
+        "seek": 0,
+        "start": 3.0,
+        "end": 4.0,
+        "text": " Que parque \u00e9 secativa."
+      },
+      {
+        "id": 4,
+        "seek": 0,
+        "start": 4.0,
+        "end": 5.0,
+        "text": " Avaro."
+      },
+      {
+        "id": 5,
+        "seek": 0,
+        "start": 5.0,
+        "end": 6.0,
+        "text": " Avaro."
+      },
+      {
+        "id": 6,
+        "seek": 0,
+        "start": 6.0,
+        "end": 7.0,
+        "text": " Avaro."
+      },
+      {
+        "id": 7,
+        "seek": 0,
+        "start": 7.0,
+        "end": 8.0,
+        "text": " Avaro."
+      },
+      {
+        "id": 8,
+        "seek": 0,
+        "start": 8.0,
+        "end": 9.0,
+        "text": " Avaro."
+      },
+      {
+        "id": 9,
+        "seek": 0,
+        "start": 9.0,
+        "end": 11.0,
+        "text": " Eu queria dizer que..."
+      },
+      {
+        "id": 10,
+        "seek": 0,
+        "start": 11.0,
+        "end": 12.0,
+        "text": " \u00c9..."
+      },
+      {
+        "id": 11,
+        "seek": 0,
+        "start": 12.0,
+        "end": 13.0,
+        "text": " \u00c9..."
+      },
+      {
+        "id": 12,
+        "seek": 0,
+        "start": 13.0,
+        "end": 16.0,
+        "text": " Quando voc\u00ea volta assim, a gente nem percebe que..."
+      },
+      {
+        "id": 13,
+        "seek": 0,
+        "start": 16.0,
+        "end": 20.0,
+        "text": " Que a falta que voc\u00ea faz, que voc\u00ea parece que..."
+      },
+      {
+        "id": 14,
+        "seek": 0,
+        "start": 20.0,
+        "end": 23.0,
+        "text": " D\u00e1 o ano assim, na correria do dia a dia..."
+      },
+      {
+        "id": 15,
+        "seek": 0,
+        "start": 23.0,
+        "end": 25.0,
+        "text": " A gente acaba de percebendo, s\u00f3 que a\u00ed voc\u00ea volta..."
+      },
+      {
+        "id": 16,
+        "seek": 0,
+        "start": 25.0,
+        "end": 27.0,
+        "text": " Tipo assim, parece que a vida..."
+      },
+      {
+        "id": 17,
+        "seek": 0,
+        "start": 27.0,
+        "end": 28.0,
+        "text": " Ela \u00e9 tipo assim..."
+      },
+      {
+        "id": 18,
+        "seek": 2800,
+        "start": 28.0,
+        "end": 30.0,
+        "text": " Partido em blocos."
+      },
+      {
+        "id": 19,
+        "seek": 2800,
+        "start": 30.0,
+        "end": 31.0,
+        "text": " Ent\u00e3o eu tive assim..."
+      },
+      {
+        "id": 20,
+        "seek": 2800,
+        "start": 31.0,
+        "end": 34.0,
+        "text": " Quando tal se mestre aqui, sem voc\u00ea..."
+      },
+      {
+        "id": 21,
+        "seek": 2800,
+        "start": 34.0,
+        "end": 36.0,
+        "text": " A\u00ed a gente acaba tendo menos contato, n\u00e9?"
+      },
+      {
+        "id": 22,
+        "seek": 2800,
+        "start": 36.0,
+        "end": 40.0,
+        "text": " Mas quando voc\u00ea volta, parece que encaixa assim e a gente..."
+      },
+      {
+        "id": 23,
+        "seek": 2800,
+        "start": 40.0,
+        "end": 42.0,
+        "text": " A gente sempre tem muitos bons momentos."
+      },
+      {
+        "id": 24,
+        "seek": 2800,
+        "start": 42.0,
+        "end": 45.0,
+        "text": " A gente sempre encontra muito e \u00e9 muito bom."
+      },
+      {
+        "id": 25,
+        "seek": 2800,
+        "start": 45.0,
+        "end": 49.0,
+        "text": " E que passa muito r\u00e1pido, resta tr\u00eas meses."
+      },
+      {
+        "id": 26,
+        "seek": 2800,
+        "start": 49.0,
+        "end": 50.0,
+        "text": " O voo..."
+      },
+      {
+        "id": 27,
+        "seek": 2800,
+        "start": 50.0,
+        "end": 51.0,
+        "text": " \u00c9..."
+      },
+      {
+        "id": 28,
+        "seek": 2800,
+        "start": 51.0,
+        "end": 53.0,
+        "text": " N\u00e3o nem parece que foram tr\u00eas vezes."
+      },
+      {
+        "id": 29,
+        "seek": 2800,
+        "start": 53.0,
+        "end": 55.0,
+        "text": " E foi muito especial muito..."
+      },
+      {
+        "id": 30,
+        "seek": 5500,
+        "start": 56.0,
+        "end": 57.0,
+        "text": " \u00c9 muito especial."
+      },
+      {
+        "id": 31,
+        "seek": 5500,
+        "start": 63.0,
+        "end": 65.0,
+        "text": " \u00c9 que eu fui ouvintir, fui ouvintir..."
+      },
+      {
+        "id": 32,
+        "seek": 5500,
+        "start": 65.0,
+        "end": 66.0,
+        "text": " \u00c9 que eu fui ouvintir."
+      }
+    ],
+    "language": "pt"
+  },
+  "804f2bd4-25c2-4eca-a7d4-25f1e04a73ed.MP4": {
+    "text": " a gente vai sentar, n\u00e9, por\u00e9m a gente deixa assim toda a energia do mundo no nosso m\u00eas porque ele sabe como voc\u00ea \u00e9 craque, n\u00e3o tem que ser fazendo. Ent\u00e3o, eu tenho certeza que voc\u00ea vai ter um grande arte agora, eu acho que eu acho que voc\u00ea vai falar com alguma pessoa, mas tamb\u00e9m \u00e9 de fato que voc\u00ea vai encontrar v\u00e1rias pessoas agora que voc\u00ea fala que vai ser um sm\u00e9dio muito dif\u00edcil, voc\u00ea gosta da fim, ent\u00e3o tenho certeza que vai ser tamb\u00e9m um baguinho da fim e emquanto voc\u00ea est\u00e1 a gente t\u00e1 aqui ele espir Pioneer 200 o Brasil. Voc\u00ea se v\u00ea embarrasses dem\u4e0d\u4e86 H\u00e1 um sambil de ende N\u00e3o d\u00e1 reproduction N\u00e3o d\u00e1 ser s\u00f3\u0435\u043d\u043e Talvez vamos ei Ficamos todo mundo N\u00e3o\u7745 Teste rightly Basta\u4f60",
+    "segments": [
+      {
+        "id": 0,
+        "seek": 0,
+        "start": 0.0,
+        "end": 5.68,
+        "text": " a gente vai sentar, n\u00e9, por\u00e9m a gente deixa assim toda a energia do mundo no nosso"
+      },
+      {
+        "id": 1,
+        "seek": 0,
+        "start": 5.68,
+        "end": 9.28,
+        "text": " m\u00eas porque ele sabe como voc\u00ea \u00e9 craque, n\u00e3o tem que ser fazendo."
+      },
+      {
+        "id": 2,
+        "seek": 0,
+        "start": 9.28,
+        "end": 14.4,
+        "text": " Ent\u00e3o, eu tenho certeza que voc\u00ea vai ter um grande arte agora, eu acho que eu acho que voc\u00ea"
+      },
+      {
+        "id": 3,
+        "seek": 0,
+        "start": 14.4,
+        "end": 17.6,
+        "text": " vai falar com alguma pessoa, mas tamb\u00e9m \u00e9 de fato que voc\u00ea vai encontrar v\u00e1rias pessoas"
+      },
+      {
+        "id": 4,
+        "seek": 0,
+        "start": 17.6,
+        "end": 21.92,
+        "text": " agora que voc\u00ea fala que vai ser um sm\u00e9dio muito dif\u00edcil, voc\u00ea gosta da fim, ent\u00e3o"
+      },
+      {
+        "id": 5,
+        "seek": 0,
+        "start": 21.92,
+        "end": 26.28,
+        "text": " tenho certeza que vai ser tamb\u00e9m um baguinho da fim e emquanto voc\u00ea est\u00e1 a gente t\u00e1 aqui"
+      },
+      {
+        "id": 6,
+        "seek": 2628,
+        "start": 27.040000000000003,
+        "end": 34.14,
+        "text": " ele espir Pioneer 200 o Brasil."
+      },
+      {
+        "id": 7,
+        "seek": 3414,
+        "start": 34.14,
+        "end": 41.5,
+        "text": " Voc\u00ea se v\u00ea embarrasses dem\u4e0d\u4e86"
+      },
+      {
+        "id": 8,
+        "seek": 3414,
+        "start": 41.5,
+        "end": 43.84,
+        "text": " H\u00e1 um sambil de ende"
+      },
+      {
+        "id": 9,
+        "seek": 3414,
+        "start": 43.84,
+        "end": 44.86,
+        "text": " N\u00e3o d\u00e1 reproduction"
+      },
+      {
+        "id": 10,
+        "seek": 3414,
+        "start": 44.86,
+        "end": 47.02,
+        "text": " N\u00e3o d\u00e1 ser s\u00f3\u0435\u043d\u043e"
+      },
+      {
+        "id": 11,
+        "seek": 3414,
+        "start": 47.02,
+        "end": 49.32,
+        "text": " Talvez vamos ei"
+      },
+      {
+        "id": 12,
+        "seek": 3414,
+        "start": 49.32,
+        "end": 53.56,
+        "text": " Ficamos todo mundo"
+      },
+      {
+        "id": 13,
+        "seek": 3414,
+        "start": 53.56,
+        "end": 56.760000000000005,
+        "text": " N\u00e3o\u7745"
+      },
+      {
+        "id": 14,
+        "seek": 3414,
+        "start": 56.760000000000005,
+        "end": 58.72,
+        "text": " Teste rightly"
+      },
+      {
+        "id": 15,
+        "seek": 3414,
+        "start": 58.72,
+        "end": 61.32,
+        "text": " Basta"
+      },
+      {
+        "id": 16,
+        "seek": 3414,
+        "start": 61.32,
+        "end": 63.3,
+        "text": "\u4f60"
+      }
+    ],
+    "language": "pt"
+  },
+  "807d1dab-6b21-458b-afab-2b7a3affec25.MP4": {
+    "text": " Que vai falar que voc\u00ea sabe tanto que \u00e9 que voc\u00ea \u00e9 um professor especial, tanto que voc\u00ea faz falta, que voc\u00ea precisa falar de novo, n\u00e9? Mas s\u00f3 que voc\u00ea aproveite no destempli\u00e1, vai ter dificuldade, vai deixar ser passado tempo, mas daqui a pouco que est\u00e1 envolta pra gente voltar a ser nosso amigo que a gente tanto gosta, que a gente n\u00e3o tem muito tanto gosto de passar os momentos, tanto \u00e9 bom, a gente zoar, dizer que \u00e9 o ano e a dieta de volta, que est\u00e1 aqui esperando, viu? Que bom!",
+    "segments": [
+      {
+        "id": 0,
+        "seek": 0,
+        "start": 0.0,
+        "end": 5.16,
+        "text": " Que vai falar que voc\u00ea sabe tanto que \u00e9 que voc\u00ea \u00e9 um professor especial,"
+      },
+      {
+        "id": 1,
+        "seek": 0,
+        "start": 5.16,
+        "end": 8.64,
+        "text": " tanto que voc\u00ea faz falta, que voc\u00ea precisa falar de novo, n\u00e9?"
+      },
+      {
+        "id": 2,
+        "seek": 0,
+        "start": 8.64,
+        "end": 15.08,
+        "text": " Mas s\u00f3 que voc\u00ea aproveite no destempli\u00e1, vai ter dificuldade, vai deixar ser passado tempo,"
+      },
+      {
+        "id": 3,
+        "seek": 0,
+        "start": 15.08,
+        "end": 20.44,
+        "text": " mas daqui a pouco que est\u00e1 envolta pra gente voltar a ser nosso amigo que a gente tanto gosta,"
+      },
+      {
+        "id": 4,
+        "seek": 0,
+        "start": 20.44,
+        "end": 23.28,
+        "text": " que a gente n\u00e3o tem muito tanto gosto de passar os momentos, tanto \u00e9 bom,"
+      },
+      {
+        "id": 5,
+        "seek": 0,
+        "start": 23.28,
+        "end": 27.0,
+        "text": " a gente zoar, dizer que \u00e9 o ano e a dieta de volta, que est\u00e1 aqui esperando, viu?"
+      },
+      {
+        "id": 6,
+        "seek": 0,
+        "start": 27.0,
+        "end": 28.0,
+        "text": " Que bom!"
+      }
+    ],
+    "language": "pt"
+  },
+  "84ac8edc-ff8a-4bab-89e3-7523a8829bdb.MP4": {
+    "text": " Ah, por favor, se n\u00e3o. Viva aqui. Ah, t\u00e1. Eita. Uma das coisas assim, que a m\u00e3o \u00e9 mais aprende com voc\u00ea, \u00e9 o que hoje eu entendo, fazendo a indig\u00eancia, que \u00e9 o amor verdadeiro, porque o amor verdadeiro \u00e9 sacrificial. E eu sei que o sacrif\u00edcio que voc\u00ea est\u00e1 fazendo \u00e9 s\u00f3 por voc\u00ea, por n\u00f3s tamb\u00e9m. E voc\u00ea se sacrifica com alegria, se se sacrifica com um garras, se sacrifica com coragem, se sacrifica com os adias, se sacrifica filho. N\u00e3o teve nenhuma vez que eu te liguei ao longo desse ano, voc\u00ea falou que n\u00e3o estava tudo bem. Todas as vezes voc\u00ea falava, t\u00e1 tudo bem, t\u00e1 tudo bem. Mesmo quando n\u00e3o estava tudo bem, mesmo quando eu sabia, mesmo quando eu ia se assumir, eu estava acontecendo alguma coisa, contava tudo bem. E esse sacrif\u00edcio filho, ele \u00e9 uma semiadora, assim, de amor e de amizade e de aprendizagem, assim, que se d\u00e1 pra todos n\u00f3s. Porque no meio do sacrif\u00edcio, e a mam\u00e3e t\u00e1 em sacrif\u00edcio de Jesus, o nosso, pelo nosso fam\u00edlia, a gente tem momentos como isso. Ent\u00e3o hoje eu vou quebrar o meu Jesus, pra me alimentar com voc\u00ea, que \u00e9 importante pra voc\u00eas. E o quanto o sacrif\u00edcio, ele \u00e9 pra momentos como esse. \u00c9 pra gente poder entender que vai ter mais sacrif\u00edcio do que a momentos assim. Mas os momentos assim s\u00e3o in\u00efcess\u00edveis e eles s\u00e3o suficientes. Ent\u00e3o que a gente tem momentos assim de sacrif\u00edcio, de luto, um buddo que fala, a gente tem correria, tem, mas que esses momentos valham, assim, a pena por tudo. E voc\u00ea, meu filho, que \u00e9 sua m\u00e3e. \u00c9 assim uma escola pra mim. Voc\u00ea foi o meu primeiro filho, voc\u00ea vai abrindo caminhos para os seus irm\u00e3os, pra mim, do seu pai, pra sua irm\u00e3. E voc\u00ea vai ser lan\u00e7ado, lan\u00e7ado pro mundo. Porque eu mundo precisa de honras com voc\u00ea. Muito precisa de honras com voc\u00ea. Ent\u00e3o o lugar que voc\u00ea vai chegar \u00e9 um lugar que voc\u00ea vai poder olhar pra tr\u00e1s e voc\u00ea vai enxergar um legado. Isso aqui, seus amigos aqui. Sabe, onde andava outros amigos tamb\u00e9m? Eu olhava e eu falava, isso j\u00e1 \u00e9 patrim\u00f4nio. look eu j\u00e1 constru\u00ed um patrim\u00f4nio. Porque eu moro patrim\u00f4nio pra voc\u00ea, \u00e9 a sua fam\u00edlia, os seus amigos. \u00c9 a hist\u00f3ria que voc\u00ea construiu com as pessoas. E voc\u00ea vai ser muito honrado, meu filho. E essa turminha aqui vai estar sempre apodindo de p\u00e9. Se almove o filho. Volta logo, o filho. Volta logo.",
+    "segments": [
+      {
+        "id": 0,
+        "seek": 0,
+        "start": 0.0,
+        "end": 2.0,
+        "text": " Ah, por favor, se n\u00e3o."
+      },
+      {
+        "id": 1,
+        "seek": 0,
+        "start": 2.0,
+        "end": 4.0,
+        "text": " Viva aqui."
+      },
+      {
+        "id": 2,
+        "seek": 0,
+        "start": 4.0,
+        "end": 6.0,
+        "text": " Ah, t\u00e1."
+      },
+      {
+        "id": 3,
+        "seek": 0,
+        "start": 6.0,
+        "end": 8.0,
+        "text": " Eita."
+      },
+      {
+        "id": 4,
+        "seek": 0,
+        "start": 8.0,
+        "end": 14.0,
+        "text": " Uma das coisas assim, que a m\u00e3o \u00e9 mais aprende com voc\u00ea,"
+      },
+      {
+        "id": 5,
+        "seek": 0,
+        "start": 14.0,
+        "end": 18.0,
+        "text": " \u00e9 o que hoje eu entendo, fazendo a indig\u00eancia,"
+      },
+      {
+        "id": 6,
+        "seek": 0,
+        "start": 18.0,
+        "end": 20.0,
+        "text": " que \u00e9 o amor verdadeiro,"
+      },
+      {
+        "id": 7,
+        "seek": 0,
+        "start": 20.0,
+        "end": 24.0,
+        "text": " porque o amor verdadeiro \u00e9 sacrificial."
+      },
+      {
+        "id": 8,
+        "seek": 0,
+        "start": 24.0,
+        "end": 28.0,
+        "text": " E eu sei que o sacrif\u00edcio que voc\u00ea est\u00e1 fazendo"
+      },
+      {
+        "id": 9,
+        "seek": 2800,
+        "start": 28.0,
+        "end": 30.0,
+        "text": " \u00e9 s\u00f3 por voc\u00ea, por n\u00f3s tamb\u00e9m."
+      },
+      {
+        "id": 10,
+        "seek": 2800,
+        "start": 30.0,
+        "end": 34.0,
+        "text": " E voc\u00ea se sacrifica com alegria,"
+      },
+      {
+        "id": 11,
+        "seek": 2800,
+        "start": 34.0,
+        "end": 36.0,
+        "text": " se se sacrifica com um garras,"
+      },
+      {
+        "id": 12,
+        "seek": 2800,
+        "start": 36.0,
+        "end": 38.0,
+        "text": " se sacrifica com coragem,"
+      },
+      {
+        "id": 13,
+        "seek": 2800,
+        "start": 38.0,
+        "end": 40.0,
+        "text": " se sacrifica com os adias,"
+      },
+      {
+        "id": 14,
+        "seek": 2800,
+        "start": 40.0,
+        "end": 42.0,
+        "text": " se sacrifica filho."
+      },
+      {
+        "id": 15,
+        "seek": 2800,
+        "start": 42.0,
+        "end": 44.0,
+        "text": " N\u00e3o teve nenhuma vez que eu te liguei ao longo desse ano,"
+      },
+      {
+        "id": 16,
+        "seek": 2800,
+        "start": 44.0,
+        "end": 46.0,
+        "text": " voc\u00ea falou que n\u00e3o estava tudo bem."
+      },
+      {
+        "id": 17,
+        "seek": 2800,
+        "start": 46.0,
+        "end": 48.0,
+        "text": " Todas as vezes voc\u00ea falava, t\u00e1 tudo bem,"
+      },
+      {
+        "id": 18,
+        "seek": 2800,
+        "start": 48.0,
+        "end": 50.0,
+        "text": " t\u00e1 tudo bem."
+      },
+      {
+        "id": 19,
+        "seek": 2800,
+        "start": 50.0,
+        "end": 52.0,
+        "text": " Mesmo quando n\u00e3o estava tudo bem,"
+      },
+      {
+        "id": 20,
+        "seek": 2800,
+        "start": 52.0,
+        "end": 54.0,
+        "text": " mesmo quando eu sabia,"
+      },
+      {
+        "id": 21,
+        "seek": 5400,
+        "start": 54.0,
+        "end": 56.0,
+        "text": " mesmo quando eu ia se assumir,"
+      },
+      {
+        "id": 22,
+        "seek": 5400,
+        "start": 56.0,
+        "end": 58.0,
+        "text": " eu estava acontecendo alguma coisa,"
+      },
+      {
+        "id": 23,
+        "seek": 5400,
+        "start": 58.0,
+        "end": 60.0,
+        "text": " contava tudo bem."
+      },
+      {
+        "id": 24,
+        "seek": 5400,
+        "start": 60.0,
+        "end": 62.0,
+        "text": " E esse sacrif\u00edcio filho,"
+      },
+      {
+        "id": 25,
+        "seek": 5400,
+        "start": 62.0,
+        "end": 64.0,
+        "text": " ele \u00e9 uma semiadora,"
+      },
+      {
+        "id": 26,
+        "seek": 5400,
+        "start": 64.0,
+        "end": 66.0,
+        "text": " assim, de amor e de amizade"
+      },
+      {
+        "id": 27,
+        "seek": 5400,
+        "start": 66.0,
+        "end": 67.0,
+        "text": " e de aprendizagem,"
+      },
+      {
+        "id": 28,
+        "seek": 5400,
+        "start": 67.0,
+        "end": 69.0,
+        "text": " assim, que se d\u00e1 pra todos n\u00f3s."
+      },
+      {
+        "id": 29,
+        "seek": 5400,
+        "start": 69.0,
+        "end": 72.0,
+        "text": " Porque no meio do sacrif\u00edcio,"
+      },
+      {
+        "id": 30,
+        "seek": 5400,
+        "start": 72.0,
+        "end": 75.0,
+        "text": " e a mam\u00e3e t\u00e1 em sacrif\u00edcio de Jesus,"
+      },
+      {
+        "id": 31,
+        "seek": 5400,
+        "start": 75.0,
+        "end": 77.0,
+        "text": " o nosso, pelo nosso fam\u00edlia,"
+      },
+      {
+        "id": 32,
+        "seek": 5400,
+        "start": 77.0,
+        "end": 79.0,
+        "text": " a gente tem momentos como isso."
+      },
+      {
+        "id": 33,
+        "seek": 5400,
+        "start": 79.0,
+        "end": 81.0,
+        "text": " Ent\u00e3o hoje eu vou quebrar o meu Jesus,"
+      },
+      {
+        "id": 34,
+        "seek": 5400,
+        "start": 81.0,
+        "end": 83.0,
+        "text": " pra me alimentar com voc\u00ea,"
+      },
+      {
+        "id": 35,
+        "seek": 8300,
+        "start": 83.0,
+        "end": 85.0,
+        "text": " que \u00e9 importante pra voc\u00eas."
+      },
+      {
+        "id": 36,
+        "seek": 8300,
+        "start": 85.0,
+        "end": 88.0,
+        "text": " E o quanto o sacrif\u00edcio,"
+      },
+      {
+        "id": 37,
+        "seek": 8300,
+        "start": 88.0,
+        "end": 90.0,
+        "text": " ele \u00e9 pra momentos como esse."
+      },
+      {
+        "id": 38,
+        "seek": 8300,
+        "start": 90.0,
+        "end": 93.0,
+        "text": " \u00c9 pra gente poder entender que vai ter mais sacrif\u00edcio"
+      },
+      {
+        "id": 39,
+        "seek": 8300,
+        "start": 93.0,
+        "end": 95.0,
+        "text": " do que a momentos assim."
+      },
+      {
+        "id": 40,
+        "seek": 8300,
+        "start": 95.0,
+        "end": 98.0,
+        "text": " Mas os momentos assim s\u00e3o in\u00efcess\u00edveis"
+      },
+      {
+        "id": 41,
+        "seek": 8300,
+        "start": 98.0,
+        "end": 100.0,
+        "text": " e eles s\u00e3o suficientes."
+      },
+      {
+        "id": 42,
+        "seek": 8300,
+        "start": 100.0,
+        "end": 103.0,
+        "text": " Ent\u00e3o que a gente tem momentos assim de sacrif\u00edcio,"
+      },
+      {
+        "id": 43,
+        "seek": 8300,
+        "start": 103.0,
+        "end": 104.0,
+        "text": " de luto, um buddo que fala,"
+      },
+      {
+        "id": 44,
+        "seek": 8300,
+        "start": 104.0,
+        "end": 105.0,
+        "text": " a gente tem correria, tem,"
+      },
+      {
+        "id": 45,
+        "seek": 8300,
+        "start": 105.0,
+        "end": 107.0,
+        "text": " mas que esses momentos valham,"
+      },
+      {
+        "id": 46,
+        "seek": 8300,
+        "start": 107.0,
+        "end": 109.0,
+        "text": " assim, a pena por tudo."
+      },
+      {
+        "id": 47,
+        "seek": 8300,
+        "start": 109.0,
+        "end": 111.0,
+        "text": " E voc\u00ea, meu filho,"
+      },
+      {
+        "id": 48,
+        "seek": 11100,
+        "start": 111.0,
+        "end": 113.0,
+        "text": " que \u00e9 sua m\u00e3e."
+      },
+      {
+        "id": 49,
+        "seek": 11100,
+        "start": 113.0,
+        "end": 115.0,
+        "text": " \u00c9 assim uma escola pra mim."
+      },
+      {
+        "id": 50,
+        "seek": 11100,
+        "start": 115.0,
+        "end": 116.0,
+        "text": " Voc\u00ea foi o meu primeiro filho,"
+      },
+      {
+        "id": 51,
+        "seek": 11100,
+        "start": 116.0,
+        "end": 118.0,
+        "text": " voc\u00ea vai abrindo caminhos"
+      },
+      {
+        "id": 52,
+        "seek": 11100,
+        "start": 118.0,
+        "end": 119.0,
+        "text": " para os seus irm\u00e3os,"
+      },
+      {
+        "id": 53,
+        "seek": 11100,
+        "start": 119.0,
+        "end": 120.0,
+        "text": " pra mim,"
+      },
+      {
+        "id": 54,
+        "seek": 11100,
+        "start": 120.0,
+        "end": 121.0,
+        "text": " do seu pai,"
+      },
+      {
+        "id": 55,
+        "seek": 11100,
+        "start": 121.0,
+        "end": 122.0,
+        "text": " pra sua irm\u00e3."
+      },
+      {
+        "id": 56,
+        "seek": 11100,
+        "start": 122.0,
+        "end": 124.0,
+        "text": " E voc\u00ea vai ser lan\u00e7ado,"
+      },
+      {
+        "id": 57,
+        "seek": 11100,
+        "start": 124.0,
+        "end": 126.0,
+        "text": " lan\u00e7ado pro mundo."
+      },
+      {
+        "id": 58,
+        "seek": 11100,
+        "start": 126.0,
+        "end": 129.0,
+        "text": " Porque eu mundo precisa de honras com voc\u00ea."
+      },
+      {
+        "id": 59,
+        "seek": 11100,
+        "start": 129.0,
+        "end": 131.0,
+        "text": " Muito precisa de honras com voc\u00ea."
+      },
+      {
+        "id": 60,
+        "seek": 11100,
+        "start": 131.0,
+        "end": 133.0,
+        "text": " Ent\u00e3o o lugar que voc\u00ea vai chegar"
+      },
+      {
+        "id": 61,
+        "seek": 11100,
+        "start": 133.0,
+        "end": 135.0,
+        "text": " \u00e9 um lugar que voc\u00ea vai poder olhar pra tr\u00e1s"
+      },
+      {
+        "id": 62,
+        "seek": 11100,
+        "start": 135.0,
+        "end": 137.0,
+        "text": " e voc\u00ea vai enxergar um legado."
+      },
+      {
+        "id": 63,
+        "seek": 11100,
+        "start": 137.0,
+        "end": 140.0,
+        "text": " Isso aqui, seus amigos aqui."
+      },
+      {
+        "id": 64,
+        "seek": 14000,
+        "start": 140.0,
+        "end": 143.0,
+        "text": " Sabe, onde andava outros amigos tamb\u00e9m?"
+      },
+      {
+        "id": 65,
+        "seek": 14000,
+        "start": 143.0,
+        "end": 144.0,
+        "text": " Eu olhava e eu falava,"
+      },
+      {
+        "id": 66,
+        "seek": 14000,
+        "start": 144.0,
+        "end": 146.0,
+        "text": " isso j\u00e1 \u00e9 patrim\u00f4nio."
+      },
+      {
+        "id": 67,
+        "seek": 14000,
+        "start": 146.0,
+        "end": 148.0,
+        "text": " look eu j\u00e1 constru\u00ed um patrim\u00f4nio."
+      },
+      {
+        "id": 68,
+        "seek": 14000,
+        "start": 148.0,
+        "end": 150.0,
+        "text": " Porque eu moro patrim\u00f4nio pra voc\u00ea,"
+      },
+      {
+        "id": 69,
+        "seek": 14000,
+        "start": 150.0,
+        "end": 152.0,
+        "text": " \u00e9 a sua fam\u00edlia, os seus amigos."
+      },
+      {
+        "id": 70,
+        "seek": 14000,
+        "start": 152.0,
+        "end": 154.0,
+        "text": " \u00c9 a hist\u00f3ria que voc\u00ea construiu com as pessoas."
+      },
+      {
+        "id": 71,
+        "seek": 14000,
+        "start": 154.0,
+        "end": 157.0,
+        "text": " E voc\u00ea vai ser muito honrado, meu filho."
+      },
+      {
+        "id": 72,
+        "seek": 14000,
+        "start": 157.0,
+        "end": 160.0,
+        "text": " E essa turminha aqui vai estar sempre apodindo de p\u00e9."
+      },
+      {
+        "id": 73,
+        "seek": 14000,
+        "start": 160.0,
+        "end": 161.0,
+        "text": " Se almove o filho."
+      },
+      {
+        "id": 74,
+        "seek": 14000,
+        "start": 161.0,
+        "end": 163.0,
+        "text": " Volta logo, o filho."
+      },
+      {
+        "id": 75,
+        "seek": 14000,
+        "start": 163.0,
+        "end": 164.0,
+        "text": " Volta logo."
+      }
+    ],
+    "language": "pt"
+  },
+  "8ae6aee0-556f-40de-a7cd-7cc871332fec.MP4": {
+    "text": " Pra ver a hist\u00f3ria, pra ver a hist\u00f3ria. A posi\u00e7\u00e3o da... Era a minha\u00e7\u00e3o de uma turma. E o jeito que ele levantou foi igual a a nossa. Mas eu era \u00fatil. Mas n\u00e3o vai ter o guia, n\u00e3o vai ter o guia. N\u00f3s quei sendo chamado, o guia. Vai embora. Mas, se \u00e9? Por esse escuro, a gente j\u00e1 fez muitas vezes. E todo dia eu te falo, t\u00e1 ligado? Bom, voc\u00ea \u00e9 o com o Ford or\u00e7\u00e9s. \u00c9 um cara muito simp\u00e1tico, um cara que todo mundo gosta. A gente t\u00e1 por perto. Quando voc\u00ea volta, essa grande fam\u00edlia, todo mundo volta, a se encontrar. A gente aproveita muito, sai, joga bola, come, qualquer coisa. Mas, todos momentos com voc\u00ea, aqui s\u00e3o muito bons. E \u00e9 muito importante isso. Voc\u00ea sempre re\u00fane todo mundo. E eu espero que voc\u00ea aproveite l\u00e1. J\u00e1 se t\u00e1 de volta. N\u00e3o vou me emocionar, tu. Mas \u00e9 o meu canal, voc\u00ea \u00e9 do meu canal. Ai! Ai, ai. Ora... Agora, daqui para 10 minutos.",
+    "segments": [
+      {
+        "id": 0,
+        "seek": 0,
+        "start": 0.0,
+        "end": 2.7800000000000002,
+        "text": " Pra ver a hist\u00f3ria, pra ver a hist\u00f3ria."
+      },
+      {
+        "id": 1,
+        "seek": 0,
+        "start": 2.7800000000000002,
+        "end": 4.46,
+        "text": " A posi\u00e7\u00e3o da..."
+      },
+      {
+        "id": 2,
+        "seek": 0,
+        "start": 4.46,
+        "end": 6.74,
+        "text": " Era a minha\u00e7\u00e3o de uma turma."
+      },
+      {
+        "id": 3,
+        "seek": 0,
+        "start": 6.74,
+        "end": 9.040000000000001,
+        "text": " E o jeito que ele levantou foi igual a a nossa."
+      },
+      {
+        "id": 4,
+        "seek": 0,
+        "start": 9.040000000000001,
+        "end": 10.4,
+        "text": " Mas eu era \u00fatil."
+      },
+      {
+        "id": 5,
+        "seek": 0,
+        "start": 10.4,
+        "end": 12.66,
+        "text": " Mas n\u00e3o vai ter o guia, n\u00e3o vai ter o guia."
+      },
+      {
+        "id": 6,
+        "seek": 0,
+        "start": 12.66,
+        "end": 15.14,
+        "text": " N\u00f3s quei sendo chamado, o guia."
+      },
+      {
+        "id": 7,
+        "seek": 0,
+        "start": 15.14,
+        "end": 16.16,
+        "text": " Vai embora."
+      },
+      {
+        "id": 8,
+        "seek": 0,
+        "start": 16.16,
+        "end": 17.66,
+        "text": " Mas, se \u00e9?"
+      },
+      {
+        "id": 9,
+        "seek": 0,
+        "start": 20.14,
+        "end": 23.26,
+        "text": " Por esse escuro, a gente j\u00e1 fez muitas vezes."
+      },
+      {
+        "id": 10,
+        "seek": 0,
+        "start": 23.26,
+        "end": 26.080000000000002,
+        "text": " E todo dia eu te falo, t\u00e1 ligado?"
+      },
+      {
+        "id": 11,
+        "seek": 0,
+        "start": 26.080000000000002,
+        "end": 27.94,
+        "text": " Bom, voc\u00ea \u00e9 o com o Ford or\u00e7\u00e9s."
+      },
+      {
+        "id": 12,
+        "seek": 2794,
+        "start": 27.94,
+        "end": 29.94,
+        "text": " \u00c9 um cara muito simp\u00e1tico, um cara que todo mundo gosta."
+      },
+      {
+        "id": 13,
+        "seek": 2794,
+        "start": 29.94,
+        "end": 31.94,
+        "text": " A gente t\u00e1 por perto."
+      },
+      {
+        "id": 14,
+        "seek": 2794,
+        "start": 31.94,
+        "end": 35.34,
+        "text": " Quando voc\u00ea volta, essa grande fam\u00edlia, todo mundo volta,"
+      },
+      {
+        "id": 15,
+        "seek": 2794,
+        "start": 35.34,
+        "end": 36.34,
+        "text": " a se encontrar."
+      },
+      {
+        "id": 16,
+        "seek": 2794,
+        "start": 36.34,
+        "end": 40.94,
+        "text": " A gente aproveita muito, sai, joga bola, come, qualquer coisa."
+      },
+      {
+        "id": 17,
+        "seek": 2794,
+        "start": 40.94,
+        "end": 43.54,
+        "text": " Mas, todos momentos com voc\u00ea, aqui s\u00e3o muito bons."
+      },
+      {
+        "id": 18,
+        "seek": 2794,
+        "start": 43.54,
+        "end": 45.540000000000006,
+        "text": " E \u00e9 muito importante isso."
+      },
+      {
+        "id": 19,
+        "seek": 2794,
+        "start": 45.540000000000006,
+        "end": 47.040000000000006,
+        "text": " Voc\u00ea sempre re\u00fane todo mundo."
+      },
+      {
+        "id": 20,
+        "seek": 2794,
+        "start": 47.040000000000006,
+        "end": 48.540000000000006,
+        "text": " E eu espero que voc\u00ea aproveite l\u00e1."
+      },
+      {
+        "id": 21,
+        "seek": 2794,
+        "start": 48.540000000000006,
+        "end": 49.540000000000006,
+        "text": " J\u00e1 se t\u00e1 de volta."
+      },
+      {
+        "id": 22,
+        "seek": 2794,
+        "start": 49.540000000000006,
+        "end": 51.540000000000006,
+        "text": " N\u00e3o vou me emocionar, tu."
+      },
+      {
+        "id": 23,
+        "seek": 2794,
+        "start": 51.540000000000006,
+        "end": 54.34,
+        "text": " Mas \u00e9 o meu canal, voc\u00ea \u00e9 do meu canal."
+      },
+      {
+        "id": 24,
+        "seek": 2794,
+        "start": 54.34,
+        "end": 56.34,
+        "text": " Ai!"
+      },
+      {
+        "id": 25,
+        "seek": 5634,
+        "start": 57.220000000000006,
+        "end": 58.660000000000004,
+        "text": " Ai, ai."
+      },
+      {
+        "id": 26,
+        "seek": 5634,
+        "start": 58.660000000000004,
+        "end": 60.14,
+        "text": " Ora..."
+      },
+      {
+        "id": 27,
+        "seek": 5634,
+        "start": 60.14,
+        "end": 62.14,
+        "text": " Agora, daqui para 10 minutos."
+      }
+    ],
+    "language": "pt"
+  },
+  "8bbd66ed-6762-4dd6-bef5-b2e8152a1fe8.MP4": {
+    "text": " T\u00e1, seu amor. Eu sou a sua m\u00e3e. Eu n\u00e3o tinha que estar aqui a casa sempre, porque eu n\u00e3o tinha animado, agitado, eu sempre tinha algu\u00e9m a te encarga. Eu n\u00e3o tinha que ir. Eu estou aqui. Eu sou a Redis. A\u00ed, eu acho que eu sempre ando a casa, e tudo fica mais feliz, mais animado sempre. A gente vai jogar a v\u00f4la e o meu, voc\u00ea sempre est\u00e1 muito alegria por onde voc\u00ea passa. E que l\u00e1 vai ser um sininho importante para voc\u00ea. Mas eu n\u00e3o ia conhecer uma vez pessoa, ou fazer uma vanda misaz. E vai dar tudo errado. N\u00e3o estou aqui. N\u00e3o estou aqui. N\u00e3o estou aqui. Eu estou aqui. Eu n\u00e3o quero voc\u00ea. Eu n\u00e3o quero voc\u00ea. Eu n\u00e3o quero voc\u00ea. Eu n\u00e3o quero voc\u00ea. N\u00e3o. N\u00e3o, n\u00e3o. Eu estou aqui. Eu n\u00e3o quero voc\u00ea. N\u00e3o, n\u00e3o, n\u00e3o. N\u00e3o, n\u00e3o. N\u00e3o quer para duas pistolas, n\u00e3o. N\u00e3o, n\u00e3o. N\u00e3o. N\u00e3o. N\u00e3o. N\u00e3o. N\u00e3o, n\u00e3o. N\u00e3o. N\u00e3o. N\u00e3o. N\u00e3o.",
+    "segments": [
+      {
+        "id": 0,
+        "seek": 0,
+        "start": 0.0,
+        "end": 2.0,
+        "text": " T\u00e1, seu amor."
+      },
+      {
+        "id": 1,
+        "seek": 0,
+        "start": 2.0,
+        "end": 3.0,
+        "text": " Eu sou a sua m\u00e3e."
+      },
+      {
+        "id": 2,
+        "seek": 0,
+        "start": 3.0,
+        "end": 6.12,
+        "text": " Eu n\u00e3o tinha que estar aqui a casa sempre, porque eu n\u00e3o tinha animado,"
+      },
+      {
+        "id": 3,
+        "seek": 0,
+        "start": 6.12,
+        "end": 9.0,
+        "text": " agitado, eu sempre tinha algu\u00e9m a te encarga."
+      },
+      {
+        "id": 4,
+        "seek": 0,
+        "start": 9.0,
+        "end": 11.0,
+        "text": " Eu n\u00e3o tinha que ir."
+      },
+      {
+        "id": 5,
+        "seek": 0,
+        "start": 11.0,
+        "end": 13.0,
+        "text": " Eu estou aqui."
+      },
+      {
+        "id": 6,
+        "seek": 0,
+        "start": 13.0,
+        "end": 14.0,
+        "text": " Eu sou a Redis."
+      },
+      {
+        "id": 7,
+        "seek": 0,
+        "start": 14.0,
+        "end": 16.0,
+        "text": " A\u00ed, eu acho que eu sempre ando a casa,"
+      },
+      {
+        "id": 8,
+        "seek": 0,
+        "start": 16.0,
+        "end": 18.0,
+        "text": " e tudo fica mais feliz,"
+      },
+      {
+        "id": 9,
+        "seek": 0,
+        "start": 18.0,
+        "end": 19.0,
+        "text": " mais animado sempre."
+      },
+      {
+        "id": 10,
+        "seek": 0,
+        "start": 19.0,
+        "end": 22.0,
+        "text": " A gente vai jogar a v\u00f4la e o meu,"
+      },
+      {
+        "id": 11,
+        "seek": 0,
+        "start": 22.0,
+        "end": 24.0,
+        "text": " voc\u00ea sempre est\u00e1 muito alegria"
+      },
+      {
+        "id": 12,
+        "seek": 0,
+        "start": 24.0,
+        "end": 26.0,
+        "text": " por onde voc\u00ea passa."
+      },
+      {
+        "id": 13,
+        "seek": 0,
+        "start": 26.0,
+        "end": 28.0,
+        "text": " E que l\u00e1 vai ser um sininho importante para voc\u00ea."
+      },
+      {
+        "id": 14,
+        "seek": 2800,
+        "start": 28.0,
+        "end": 30.0,
+        "text": " Mas eu n\u00e3o ia conhecer uma vez pessoa,"
+      },
+      {
+        "id": 15,
+        "seek": 2800,
+        "start": 30.0,
+        "end": 32.0,
+        "text": " ou fazer uma vanda misaz."
+      },
+      {
+        "id": 16,
+        "seek": 2800,
+        "start": 32.0,
+        "end": 34.0,
+        "text": " E vai dar tudo errado."
+      },
+      {
+        "id": 17,
+        "seek": 2800,
+        "start": 34.0,
+        "end": 36.0,
+        "text": " N\u00e3o estou aqui."
+      },
+      {
+        "id": 18,
+        "seek": 2800,
+        "start": 36.0,
+        "end": 38.0,
+        "text": " N\u00e3o estou aqui."
+      },
+      {
+        "id": 19,
+        "seek": 2800,
+        "start": 38.0,
+        "end": 40.0,
+        "text": " N\u00e3o estou aqui."
+      },
+      {
+        "id": 20,
+        "seek": 2800,
+        "start": 40.0,
+        "end": 42.0,
+        "text": " Eu estou aqui."
+      },
+      {
+        "id": 21,
+        "seek": 2800,
+        "start": 42.0,
+        "end": 44.0,
+        "text": " Eu n\u00e3o quero voc\u00ea."
+      },
+      {
+        "id": 22,
+        "seek": 2800,
+        "start": 44.0,
+        "end": 46.0,
+        "text": " Eu n\u00e3o quero voc\u00ea."
+      },
+      {
+        "id": 23,
+        "seek": 2800,
+        "start": 46.0,
+        "end": 48.0,
+        "text": " Eu n\u00e3o quero voc\u00ea."
+      },
+      {
+        "id": 24,
+        "seek": 2800,
+        "start": 48.0,
+        "end": 50.0,
+        "text": " Eu n\u00e3o quero voc\u00ea."
+      },
+      {
+        "id": 25,
+        "seek": 2800,
+        "start": 50.0,
+        "end": 52.0,
+        "text": " N\u00e3o."
+      },
+      {
+        "id": 26,
+        "seek": 2800,
+        "start": 52.0,
+        "end": 54.0,
+        "text": " N\u00e3o, n\u00e3o."
+      },
+      {
+        "id": 27,
+        "seek": 2800,
+        "start": 54.0,
+        "end": 56.0,
+        "text": " Eu estou aqui."
+      },
+      {
+        "id": 28,
+        "seek": 5600,
+        "start": 56.0,
+        "end": 58.0,
+        "text": " Eu n\u00e3o quero voc\u00ea."
+      },
+      {
+        "id": 29,
+        "seek": 5600,
+        "start": 58.0,
+        "end": 60.0,
+        "text": " N\u00e3o, n\u00e3o, n\u00e3o."
+      },
+      {
+        "id": 30,
+        "seek": 5600,
+        "start": 60.0,
+        "end": 62.0,
+        "text": " N\u00e3o, n\u00e3o."
+      },
+      {
+        "id": 31,
+        "seek": 5600,
+        "start": 62.0,
+        "end": 64.0,
+        "text": " N\u00e3o quer para duas pistolas, n\u00e3o."
+      },
+      {
+        "id": 32,
+        "seek": 5600,
+        "start": 64.0,
+        "end": 66.0,
+        "text": " N\u00e3o, n\u00e3o."
+      },
+      {
+        "id": 33,
+        "seek": 5600,
+        "start": 66.0,
+        "end": 68.0,
+        "text": " N\u00e3o."
+      },
+      {
+        "id": 34,
+        "seek": 5600,
+        "start": 68.0,
+        "end": 70.0,
+        "text": " N\u00e3o."
+      },
+      {
+        "id": 35,
+        "seek": 5600,
+        "start": 70.0,
+        "end": 72.0,
+        "text": " N\u00e3o."
+      },
+      {
+        "id": 36,
+        "seek": 5600,
+        "start": 72.0,
+        "end": 74.0,
+        "text": " N\u00e3o."
+      },
+      {
+        "id": 37,
+        "seek": 5600,
+        "start": 74.0,
+        "end": 76.0,
+        "text": " N\u00e3o, n\u00e3o."
+      },
+      {
+        "id": 38,
+        "seek": 5600,
+        "start": 76.0,
+        "end": 78.0,
+        "text": " N\u00e3o."
+      },
+      {
+        "id": 39,
+        "seek": 5600,
+        "start": 78.0,
+        "end": 80.0,
+        "text": " N\u00e3o."
+      },
+      {
+        "id": 40,
+        "seek": 5600,
+        "start": 80.0,
+        "end": 82.0,
+        "text": " N\u00e3o."
+      },
+      {
+        "id": 41,
+        "seek": 5600,
+        "start": 82.0,
+        "end": 84.0,
+        "text": " N\u00e3o."
+      }
+    ],
+    "language": "pt"
+  },
+  "97fa99bb-986d-4d7f-a8be-3ec4feb6575c.MP4": {
+    "text": " E fazerCON \u03c3\u03c4\u03bf por \u00e1rvore dos todos misos e fins\u00e5 neste Ar\u043e\u0434a esta innovations. Deva umaificante N\u00e3o gostei. N\u00e3o, queria, Primeiramente, falar o quanto se \u00e9 o que \u00e9 especial para a gente, \u00e9 quando \u00e9 bom, \u00e9 quando voc\u00ea est\u00e1 aqui, com a gente, com o legal, e com os dias. D\u00e1 uma ligada na gente boa, a gente tem de j\u00e1 boa sorte, tem de ser um semestre barco, vai ser semestre diferente, sem nos amigos, mas se n\u00e3o se quiser, vai ter a pessoa para que seja tudo \u00f3timo, se consiga, se divertir e j\u00e1 vai dar de bom. Vai!",
+    "segments": [
+      {
+        "id": 0,
+        "seek": 0,
+        "start": 0.0,
+        "end": 15.14,
+        "text": " E fazerCON \u03c3\u03c4\u03bf por \u00e1rvore dos todos misos e fins\u00e5 neste"
+      },
+      {
+        "id": 1,
+        "seek": 0,
+        "start": 15.14,
+        "end": 25.1,
+        "text": " Ar\u043e\u0434a esta innovations."
+      },
+      {
+        "id": 2,
+        "seek": 0,
+        "start": 25.1,
+        "end": 28.5,
+        "text": " Deva umaificante"
+      },
+      {
+        "id": 3,
+        "seek": 2850,
+        "start": 28.5,
+        "end": 30.5,
+        "text": " N\u00e3o gostei."
+      },
+      {
+        "id": 4,
+        "seek": 2850,
+        "start": 30.5,
+        "end": 32.5,
+        "text": " N\u00e3o, queria,"
+      },
+      {
+        "id": 5,
+        "seek": 2850,
+        "start": 32.5,
+        "end": 33.5,
+        "text": " Primeiramente,"
+      },
+      {
+        "id": 6,
+        "seek": 2850,
+        "start": 33.5,
+        "end": 36.5,
+        "text": " falar o quanto se \u00e9 o que \u00e9 especial para a gente,"
+      },
+      {
+        "id": 7,
+        "seek": 2850,
+        "start": 36.5,
+        "end": 38.5,
+        "text": " \u00e9 quando \u00e9 bom, \u00e9 quando voc\u00ea est\u00e1 aqui,"
+      },
+      {
+        "id": 8,
+        "seek": 2850,
+        "start": 38.5,
+        "end": 41.5,
+        "text": " com a gente, com o legal, e com os dias."
+      },
+      {
+        "id": 9,
+        "seek": 2850,
+        "start": 41.5,
+        "end": 44.5,
+        "text": " D\u00e1 uma ligada na gente boa,"
+      },
+      {
+        "id": 10,
+        "seek": 2850,
+        "start": 44.5,
+        "end": 47.5,
+        "text": " a gente tem de j\u00e1 boa sorte,"
+      },
+      {
+        "id": 11,
+        "seek": 2850,
+        "start": 47.5,
+        "end": 48.5,
+        "text": " tem de ser um semestre barco,"
+      },
+      {
+        "id": 12,
+        "seek": 2850,
+        "start": 48.5,
+        "end": 50.5,
+        "text": " vai ser semestre diferente,"
+      },
+      {
+        "id": 13,
+        "seek": 2850,
+        "start": 50.5,
+        "end": 51.5,
+        "text": " sem nos amigos,"
+      },
+      {
+        "id": 14,
+        "seek": 2850,
+        "start": 51.5,
+        "end": 52.5,
+        "text": " mas se n\u00e3o se quiser,"
+      },
+      {
+        "id": 15,
+        "seek": 2850,
+        "start": 52.5,
+        "end": 54.5,
+        "text": " vai ter a pessoa para que seja tudo \u00f3timo,"
+      },
+      {
+        "id": 16,
+        "seek": 2850,
+        "start": 54.5,
+        "end": 55.5,
+        "text": " se consiga,"
+      },
+      {
+        "id": 17,
+        "seek": 2850,
+        "start": 55.5,
+        "end": 57.5,
+        "text": " se divertir e j\u00e1 vai dar de bom."
+      },
+      {
+        "id": 18,
+        "seek": 5750,
+        "start": 57.5,
+        "end": 59.5,
+        "text": " Vai!"
+      }
+    ],
+    "language": "pt"
+  },
+  "9f897407-6040-4973-af2a-ac55e7a861ad.MP4": {
+    "text": " Vou dar tamb\u00e9m. Obrigado pela parte que me toca. Obrigado pela parte que me toca. Mas eu estou sem ser muito grata, eu por ter voc\u00ea como um de maravilhamento do caso, tamb\u00e9m que voc\u00ea n\u00e3o me d\u00e1 para me ajudar agora, eu por ser realmente esse cara que todo mundo fala e eu tipo assim, eu gosto muito de voc\u00ea ir a sua fam\u00edlia toda, eu sempre sinto muito bem acolhida aqui e eu sinto falta n\u00e3o saber de voc\u00ea quando voc\u00ea vier, mas todo mundo, ent\u00e3o sempre voc\u00ea volta eu acho que eu estou sem muito legal e agrade\u00e7o por voc\u00ea e voc\u00ea principalmente me trazer para dentro dos seus fam\u00edlios. Que bom! Ai, que mim! Pode vir, vai dar... Ent\u00e3o voc\u00ea faz ser traz o MOOC e manda o Lundau aqui.",
+    "segments": [
+      {
+        "id": 0,
+        "seek": 0,
+        "start": 0.0,
+        "end": 2.0,
+        "text": " Vou dar tamb\u00e9m."
+      },
+      {
+        "id": 1,
+        "seek": 0,
+        "start": 2.0,
+        "end": 6.0,
+        "text": " Obrigado pela parte que me toca."
+      },
+      {
+        "id": 2,
+        "seek": 0,
+        "start": 6.0,
+        "end": 8.0,
+        "text": " Obrigado pela parte que me toca."
+      },
+      {
+        "id": 3,
+        "seek": 0,
+        "start": 8.0,
+        "end": 15.0,
+        "text": " Mas eu estou sem ser muito grata, eu por ter voc\u00ea como um de maravilhamento do caso,"
+      },
+      {
+        "id": 4,
+        "seek": 0,
+        "start": 15.0,
+        "end": 19.0,
+        "text": " tamb\u00e9m que voc\u00ea n\u00e3o me d\u00e1 para me ajudar agora, eu por ser realmente esse cara que todo mundo fala"
+      },
+      {
+        "id": 5,
+        "seek": 0,
+        "start": 19.0,
+        "end": 24.0,
+        "text": " e eu tipo assim, eu gosto muito de voc\u00ea ir a sua fam\u00edlia toda, eu sempre sinto muito bem acolhida aqui"
+      },
+      {
+        "id": 6,
+        "seek": 0,
+        "start": 24.0,
+        "end": 29.0,
+        "text": " e eu sinto falta n\u00e3o saber de voc\u00ea quando voc\u00ea vier, mas todo mundo, ent\u00e3o sempre voc\u00ea volta"
+      },
+      {
+        "id": 7,
+        "seek": 2900,
+        "start": 29.0,
+        "end": 38.0,
+        "text": " eu acho que eu estou sem muito legal e agrade\u00e7o por voc\u00ea e voc\u00ea principalmente me trazer para dentro dos seus fam\u00edlios."
+      },
+      {
+        "id": 8,
+        "seek": 2900,
+        "start": 38.0,
+        "end": 39.0,
+        "text": " Que bom!"
+      },
+      {
+        "id": 9,
+        "seek": 2900,
+        "start": 39.0,
+        "end": 40.0,
+        "text": " Ai, que mim!"
+      },
+      {
+        "id": 10,
+        "seek": 2900,
+        "start": 40.0,
+        "end": 41.0,
+        "text": " Pode vir, vai dar..."
+      },
+      {
+        "id": 11,
+        "seek": 2900,
+        "start": 41.0,
+        "end": 44.0,
+        "text": " Ent\u00e3o voc\u00ea faz ser traz o MOOC e manda o Lundau aqui."
+      }
+    ],
+    "language": "pt"
+  }
+}
+----------------------------------------
+
+✅ Test completed successfully!
+
+--- Testing delete_videos_from_container Tool ---
+
+Execution time: 0.3507 seconds
+Tool Output:
+----------------------------------------
+Batch delete completed: 1 files processed
+✅ results/merged_test_video.mp4
+✅ `videos_data.txt` updated successfully.
+----------------------------------------
+
+✅ Test completed successfully!

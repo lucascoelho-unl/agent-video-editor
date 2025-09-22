@@ -9,6 +9,8 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Tool
 from tools.tools import (
     delete_videos_from_container,
+    get_video_transcript,
+    get_videos_creation_timestamps,
     list_videos_in_container,
     merge_videos_in_container,
 )
@@ -25,6 +27,8 @@ async def create_mcp_server():
         "list_videos_in_container": list_videos_in_container,
         "merge_videos_in_container": merge_videos_in_container,
         "delete_videos_from_container": delete_videos_from_container,
+        "get_videos_creation_timestamps": get_videos_creation_timestamps,
+        "get_video_transcript": get_video_transcript,
     }
 
     @server.list_tools()
@@ -78,6 +82,35 @@ async def create_mcp_server():
                         }
                     },
                     "required": ["file_paths"],
+                },
+            ),
+            Tool(
+                name="get_videos_creation_timestamps",
+                description="Retrieves the creation timestamps for all videos or a specified list of videos.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "video_filenames": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Optional list of video filenames to get timestamps for. If not provided, returns timestamps for all videos.",
+                        }
+                    },
+                },
+            ),
+            Tool(
+                name="get_video_transcript",
+                description="Retrieves the transcript for a specific video or a list of videos.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "video_filenames": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "The filenames of the videos to get the transcript for.",
+                        }
+                    },
+                    "required": ["video_filenames"],
                 },
             ),
         ]
