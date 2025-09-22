@@ -121,16 +121,6 @@ class DockerManager:
         success, _ = self.exec_command(f"rm -f {file_path}")
         return success
 
-    def create_directory(self, path: str) -> bool:
-        """Create directory in container"""
-        success, _ = self.exec_command(f"mkdir -p {path}")
-        return success
-
-    def get_container_info(self) -> dict:
-        """Get detailed container information"""
-        is_running, status = self.check_container_status()
-        return {"name": self.container_name, "running": is_running, "status": status}
-
     def execute_script(
         self, script_content: str, container_temp_path: str = "/app/temp"
     ) -> Tuple[bool, str]:

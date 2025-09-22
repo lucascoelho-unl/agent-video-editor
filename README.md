@@ -1,27 +1,18 @@
-# agent-video-editor
-
-Agent that is able to edit videos given a prompt
-
-# Spin up the API server
-
 cd backend
 python main.py
 
-# Stop containers
+cd frontend
+npm start
 
-docker-compose down
+cd backend
+adk web
 
-# Start containers
+cd backend:
+-docker-compose down
+-docker-compose up -d
+-docker-compose logs -f
+-docker-compose build --no-cache
 
-docker-compose up -d
-
-# View logs
-
-docker-compose logs -f
-
-# Rebuild if you change Dockerfile
-
-docker-compose build --no-cache
-
+TODO: Log all parts of the merging videos function to spot what is taking longer and improve eficiency.
 TODO: Create video processing to store information in the container. Video processing whenever it is uploaded with transctips, time stamps, metadata etc
 TODO: Make sure merged videos have the same proportions for quality sake

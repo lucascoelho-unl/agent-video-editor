@@ -7,7 +7,6 @@ Handles video-specific operations in the container
 import os
 import shutil
 import tempfile
-from typing import List, Tuple
 
 from fastapi import HTTPException, UploadFile
 
@@ -156,27 +155,6 @@ class VideoService:
                 detail=f"Video '{filename}' not found in container {source} or could not be downloaded.",
             )
 
-    def get_video_by_filename(self, filename: str) -> str:
-        """Downloads a video from the container to the local agent downloads directory."""
-        self.ensure_container_running()
-
-        # Ensure the local downloads directory exists
-        os.makedirs(AGENT_DOWNLOADS_PATH, exist_ok=True)
-
-        container_path = f"{CONTAINER_VIDEOS_PATH}/{filename}"
-        local_path = os.path.join(AGENT_DOWNLOADS_PATH, filename)
-
-        # Copy the file from the container
-        success = self.docker.copy_file_from_container(container_path, local_path)
-
-        if success:
-            return local_path
-        else:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Video '{filename}' not found in container or could not be downloaded.",
-            )
-
     def delete_video(self, file_path: str) -> dict:
         """Delete a video from a specified path in the container"""
         self.ensure_container_running()
@@ -206,6 +184,5 @@ class VideoService:
         is_running, status_msg = self.docker.check_container_status()
         return {
             "container_running": is_running,
-            "container_id": "unknown",
             "message": status_msg,
         }
