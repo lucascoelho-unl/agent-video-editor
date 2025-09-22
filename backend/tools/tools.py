@@ -9,7 +9,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 
 from backend.docker.factory import create_docker_manager, create_video_service
 from backend.tools.scripts import batch_merge_videos_script
-from backend.tools.video_utils import process_video, update_videos_data_after_delete
+from backend.tools.video_utils import (
+    update_video_data_with_concatenated_transcript,
+    update_videos_data_after_delete,
+)
 
 
 async def list_videos_in_container() -> str:
@@ -33,15 +36,27 @@ async def list_videos_in_container() -> str:
     return json.dumps(result, indent=2)
 
 
-async def get_videos_creation_timestamps() -> str:
+async def get_videos_creation_timestamps(
+    video_filenames: list[str] | None = None,
+) -> str:
     """
-    Retrieves the creation timestamps for all videos from the videos_data.json file.
+    Retrieves the creation timestamps for all videos or a specified list of videos
+    from the videos_data.json file.
     """
     video_service = create_video_service()
     videos_data = await video_service.get_videos_data()
 
-    # Extracting filename and creation_time from the data
     videos = videos_data.get("videos", {})
+
+    if video_filenames:
+        videos_to_process = {
+            filename: videos[filename]
+            for filename in video_filenames
+            if filename in videos
+        }
+    else:
+        videos_to_process = videos
+
     timestamps = [
         {
             "filename": filename,
@@ -49,7 +64,7 @@ async def get_videos_creation_timestamps() -> str:
             .get("tags", {})
             .get("creation_time"),
         }
-        for filename, data in videos.items()
+        for filename, data in videos_to_process.items()
     ]
 
     # Sort timestamps by creation_time in ascending order
@@ -58,25 +73,32 @@ async def get_videos_creation_timestamps() -> str:
     return json.dumps(timestamps, indent=2)
 
 
-async def get_video_transcript(video_filename: str) -> str:
+async def get_video_transcript(video_filenames: list[str]) -> str:
     """
-    Retrieves the transcript for a specific video.
+    Retrieves the transcript for a specific video or a list of videos.
     """
     video_service = create_video_service()
     videos_data = await video_service.get_videos_data()
+    all_videos_data = videos_data.get("videos", {})
 
-    # Search for the video data by its filename
-    video_data = videos_data.get("videos", {}).get(video_filename)
+    transcripts = {}
+    for video_filename in video_filenames:
+        video_data = all_videos_data.get(video_filename)
 
-    if not video_data:
-        return f"Video data not found for: {video_filename}"
+        if not video_data:
+            transcripts[video_filename] = f"Video data not found for: {video_filename}"
+            continue
 
-    transcript = video_data.get("transcript")
+        transcript = video_data.get("transcript")
 
-    if not transcript:
-        return f"No transcript found for video: {video_filename}"
+        if not transcript:
+            transcripts[video_filename] = (
+                f"No transcript found for video: {video_filename}"
+            )
+        else:
+            transcripts[video_filename] = transcript
 
-    return json.dumps(transcript, indent=2)
+    return json.dumps(transcripts, indent=2)
 
 
 async def merge_videos_in_container(
@@ -106,7 +128,11 @@ async def merge_videos_in_container(
     if success:
         # After a successful merge, process the new video to get its data
         try:
-            await process_video(output_filename, video_dir=destination_directory)
+            await update_video_data_with_concatenated_transcript(
+                output_filename,
+                destination_directory,
+                video_filenames,
+            )
             return f"Successfully merged {len(video_filenames)} videos: {', '.join(video_filenames)}\nOutput:\n{output}"
         except Exception as e:
             return f"Successfully merged videos, but failed to process the new video data: {str(e)}"

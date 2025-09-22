@@ -23,6 +23,6 @@ docker-compose logs -f
 
 docker-compose build --no-cache
 
-TODO: cursor bot fix
+TODO: Add following agent specialized in analizing transcript context and organizing the merging order
 TODO: Move video processing to when user clicks edit button.
 TODO: Make sure merged videos have the same proportions for quality sake

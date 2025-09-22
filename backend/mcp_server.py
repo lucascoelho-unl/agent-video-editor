@@ -86,21 +86,31 @@ async def create_mcp_server():
             ),
             Tool(
                 name="get_videos_creation_timestamps",
-                description="Retrieves the creation timestamps for all videos.",
-                inputSchema={"type": "object", "properties": {}},
-            ),
-            Tool(
-                name="get_video_transcript",
-                description="Retrieves the transcript for a specific video.",
+                description="Retrieves the creation timestamps for all videos or a specified list of videos.",
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "video_filename": {
-                            "type": "string",
-                            "description": "The filename of the video to get the transcript for.",
+                        "video_filenames": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Optional list of video filenames to get timestamps for. If not provided, returns timestamps for all videos.",
                         }
                     },
-                    "required": ["video_filename"],
+                },
+            ),
+            Tool(
+                name="get_video_transcript",
+                description="Retrieves the transcript for a specific video or a list of videos.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "video_filenames": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "The filenames of the videos to get the transcript for.",
+                        }
+                    },
+                    "required": ["video_filenames"],
                 },
             ),
         ]

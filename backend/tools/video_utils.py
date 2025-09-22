@@ -139,3 +139,75 @@ async def process_video(filename: str, video_dir: str = "videos") -> None:
     success, output = await docker_manager.execute_script(script)
     if not success:
         raise Exception(f"Error updating videos_data.txt: {output}")
+
+
+async def update_video_data_with_concatenated_transcript(
+    output_filename: str,
+    destination_directory: str,
+    video_filenames: list,
+    language: str | None = "en",
+) -> None:
+    """
+    Updates video data for a merged video with a concatenated transcript.
+    """
+    docker_manager = create_docker_manager()
+    video_service = create_video_service()
+
+    videos_data = await video_service.get_videos_data()
+    all_videos_data = videos_data.get("videos", {})
+
+    source_transcripts = []
+    language = None
+    for filename in video_filenames:
+        video_data = all_videos_data.get(filename)
+        if video_data and "transcript" in video_data:
+            transcript_data = video_data["transcript"]
+            if "text" in transcript_data:
+                source_transcripts.append(transcript_data["text"])
+            if language is None and "language" in transcript_data:
+                language = transcript_data["language"]
+
+    concatenated_transcript_text = " ".join(source_transcripts)
+
+    # Get metadata for the new video
+    new_video_path = f"/app/{destination_directory}/{output_filename}"
+    metadata_script = extract_video_data_script(new_video_path)
+    metadata_success, metadata_output = await docker_manager.execute_script(
+        metadata_script
+    )
+    if not metadata_success:
+        raise Exception(
+            f"Error extracting metadata for merged video: {metadata_output}"
+        )
+
+    raw_metadata = json.loads(metadata_output)
+    processed_metadata = _process_metadata(raw_metadata)
+
+    # Create new transcript object
+    new_transcript = {
+        "text": concatenated_transcript_text,
+        "segments": [],  # Segments from old videos are invalid for the new one
+        "language": language,
+    }
+
+    # Combine into new video data object
+    new_video_data = {
+        output_filename: {
+            "metadata": processed_metadata,
+            "transcript": new_transcript,
+        }
+    }
+
+    # Update videos_data.txt
+    existing_data = await video_service.get_videos_data()
+    if "videos" not in existing_data:
+        existing_data["videos"] = {}
+    existing_data["videos"].update(new_video_data)
+
+    script = write_video_data_script(existing_data)
+    write_success, write_output = await docker_manager.execute_script(script)
+
+    if not write_success:
+        raise Exception(
+            f"Error updating videos_data.txt for merged video: {write_output}"
+        )
