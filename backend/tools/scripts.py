@@ -1,3 +1,4 @@
+import base64
 import json
 
 
@@ -84,12 +85,15 @@ def write_video_data_script(data: dict) -> str:
     """
     Returns a Python script to write data to a JSON file.
     """
-    data_str = json.dumps(data, indent=2)
+    json_data_string = json.dumps(data, indent=2)
+    encoded_data = base64.b64encode(json_data_string.encode("utf-8")).decode("utf-8")
     return f"""
 import json
+import base64
 try:
+    decoded_data = base64.b64decode('{encoded_data}').decode('utf-8')
     with open('/app/videos_data.txt', 'w') as f:
-        f.write('''{data_str}''')
+        f.write(decoded_data)
     print("Successfully wrote to videos_data.txt")
 except Exception as e:
     print(json.dumps({{"error": str(e)}}))
