@@ -23,6 +23,6 @@ AGENT_DOWNLOADS_PATH = os.path.join(
     os.path.dirname(__file__), "..", "agent", "downloads"
 )
 
-TIMEOUT = 120
+TIMEOUT = 100000
 
 NUM_CORES = 4
