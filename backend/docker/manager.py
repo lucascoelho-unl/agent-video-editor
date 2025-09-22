@@ -21,23 +21,6 @@ class DockerManager:
     def __init__(self, container_name: str = "video-editor-tools"):
         self.container_name = container_name
 
-    def get_client(self):
-        """Get Docker client with fallback methods"""
-        try:
-            return docker.from_env()
-        except Exception:
-            try:
-                return docker.DockerClient(base_url="unix://var/run/docker.sock")
-            except Exception:
-                try:
-                    return docker.DockerClient(
-                        base_url="unix:///Users/lucascoelho/.docker/run/docker.sock"
-                    )
-                except Exception:
-                    raise Exception(
-                        "Cannot connect to Docker daemon. Make sure Docker is running."
-                    )
-
     async def check_container_status(self) -> Tuple[bool, str]:
         """Check container status using subprocess (more reliable on macOS)"""
         try:
@@ -130,16 +113,6 @@ class DockerManager:
         """Delete file in container"""
         success, _ = await self.exec_command(f"rm -f {file_path}")
         return success
-
-    async def create_directory(self, path: str) -> bool:
-        """Create directory in container"""
-        success, _ = await self.exec_command(f"mkdir -p {path}")
-        return success
-
-    async def get_container_info(self) -> dict:
-        """Get detailed container information"""
-        is_running, status = await self.check_container_status()
-        return {"name": self.container_name, "running": is_running, "status": status}
 
     async def execute_script(
         self, script_content: str, container_temp_path: str = "/app/temp"
