@@ -27,7 +27,7 @@ async def create_mcp_server():
         "list_videos_in_container": list_videos_in_container,
         "merge_videos_in_container": merge_videos_in_container,
         "delete_videos_from_container": delete_videos_from_container,
-        "get_video_creation_timestamps": get_videos_creation_timestamps,
+        "get_videos_creation_timestamps": get_videos_creation_timestamps,
         "get_video_transcript": get_video_transcript,
     }
 

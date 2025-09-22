@@ -43,7 +43,7 @@ async def get_videos_creation_timestamps() -> str:
     # Extracting filename and creation_time from the data
     timestamps = [
         {"filename": data.get("filename"), "creation_time": data.get("creation_time")}
-        for data in videos_data
+        for data in videos_data.values()
     ]
 
     # Sort timestamps by creation_time in ascending order
@@ -58,9 +58,23 @@ async def get_video_transcript(video_filename: str) -> str:
     """
     video_service = create_video_service()
     videos_data = await video_service.get_videos_data()
-    video_data = videos_data.get("videos", {}).get(video_filename, {})
-    transcript = video_data.get("transcript", {})
-    return transcript
+
+    # Search for the video data by iterating through the stored data
+    video_data = None
+    for value in videos_data.values():
+        if value.get("filename") == video_filename:
+            video_data = value
+            break
+
+    if not video_data:
+        return f"Video data not found for: {video_filename}"
+
+    transcript = video_data.get("transcript")
+
+    if not transcript:
+        return f"No transcript found for video: {video_filename}"
+
+    return json.dumps(transcript, indent=2)
 
 
 async def merge_videos_in_container(
