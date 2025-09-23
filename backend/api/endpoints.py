@@ -45,7 +45,7 @@ async def upload_video(file: UploadFile = File(...)):
     Supported formats: mp4, avi, mov, mkv, webm
     """
     response = await video_service.upload_video(file)
-    await process_video(file.filename)
+    # await process_video(file.filename)
     return response
 
 

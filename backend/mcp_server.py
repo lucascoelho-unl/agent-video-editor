@@ -8,6 +8,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool
 from tools.tools import (
+    analyze_video_with_gemini,
     delete_videos_from_container,
     get_video_transcript,
     get_videos_creation_timestamps,
@@ -29,6 +30,7 @@ async def create_mcp_server():
         "delete_videos_from_container": delete_videos_from_container,
         "get_videos_creation_timestamps": get_videos_creation_timestamps,
         "get_video_transcript": get_video_transcript,
+        "analyze_video_with_gemini": analyze_video_with_gemini,
     }
 
     @server.list_tools()
@@ -111,6 +113,28 @@ async def create_mcp_server():
                         }
                     },
                     "required": ["video_filenames"],
+                },
+            ),
+            Tool(
+                name="analyze_video_with_gemini",
+                description="Analyzes a video file with a multimodal AI model to understand its content. Provide a video filename and a text prompt.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "video_filename": {
+                            "type": "string",
+                            "description": "The filename of the video to analyze (e.g., 'video1.mp4').",
+                        },
+                        "prompt": {
+                            "type": "string",
+                            "description": "The text prompt for the analysis (e.g., 'Describe what is happening in this video.').",
+                        },
+                        "source_directory": {
+                            "type": "string",
+                            "description": "The directory to get the video from (default: 'videos').",
+                        },
+                    },
+                    "required": ["video_filename", "prompt"],
                 },
             ),
         ]

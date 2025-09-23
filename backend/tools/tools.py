@@ -2,7 +2,17 @@ import asyncio
 import json
 import os
 import sys
-from typing import Tuple
+import tempfile
+import time
+
+import dotenv
+import google.generativeai as genai
+
+dotenv.load_dotenv(dotenv_path="agent/.env")
+gemini_api_key = os.environ.get("GOOGLE_API_KEY")
+if not gemini_api_key:
+    raise ValueError("GEMINI_API_KEY not found in environment variables")
+genai.configure(api_key=gemini_api_key)
 
 # Add project root to the Python path to allow running this script directly
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
@@ -125,19 +135,19 @@ async def merge_videos_in_container(
 
     success, output = await docker_manager.execute_script(python_script)
 
-    if success:
-        # After a successful merge, process the new video to get its data
-        try:
-            await update_video_data_with_concatenated_transcript(
-                output_filename,
-                destination_directory,
-                video_filenames,
-            )
-            return f"Successfully merged {len(video_filenames)} videos: {', '.join(video_filenames)}\nOutput:\n{output}"
-        except Exception as e:
-            return f"Successfully merged videos, but failed to process the new video data: {str(e)}"
-    else:
+    if not success:
         return f"Error merging videos: {output}"
+
+    # After a successful merge, process the new video to get its data
+    try:
+        await update_video_data_with_concatenated_transcript(
+            output_filename,
+            destination_directory,
+            video_filenames,
+        )
+        return f"Successfully merged {len(video_filenames)} videos: {', '.join(video_filenames)}\nOutput:\n{output}"
+    except Exception as e:
+        return f"Successfully merged videos, but failed to process the new video data: {str(e)}"
 
 
 async def delete_videos_from_container(file_paths: list) -> str:
@@ -175,3 +185,71 @@ async def delete_videos_from_container(file_paths: list) -> str:
         response_lines.extend(errors)
 
     return "\n".join(response_lines)
+
+
+async def analyze_video_with_gemini(
+    video_filename: str, prompt: str, source_directory: str = "videos"
+) -> str:
+    """
+    Analyzes a video file with the Gemini API and returns a text-based analysis.
+    """
+    docker_manager = create_docker_manager()
+    video_path_in_container = f"/app/{source_directory}/{video_filename}"
+
+    # First, we need to get the video file out of the container to upload it to the Gemini API
+    # This is a simplified approach; you might want to create a more robust file handling system
+    with tempfile.NamedTemporaryFile(
+        delete=False, suffix=os.path.splitext(video_filename)[1]
+    ) as temp_local_file:
+        if not await docker_manager.copy_file_from_container(
+            video_path_in_container, temp_local_file.name
+        ):
+            return json.dumps(
+                {"error": f"Failed to copy {video_filename} from the container."}
+            )
+
+        video_file = None
+        try:
+            # Upload the file to the Gemini API
+            video_file = genai.upload_file(path=temp_local_file.name)
+
+            # Wait for the video to be processed, with a timeout
+            processing_start_time = time.time()
+            processing_timeout = 600  # 10 minutes
+            while video_file.state.name == "PROCESSING":
+                if time.time() - processing_start_time > processing_timeout:
+                    return json.dumps(
+                        {"error": "Timeout: Video processing took too long."}
+                    )
+                time.sleep(10)
+                try:
+                    video_file = genai.get_file(video_file.name)
+                except Exception as e:
+                    # Log the error and continue polling
+                    print(f"Error checking video status: {e}")
+                    pass
+
+            if video_file.state.name == "FAILED":
+                return json.dumps(
+                    {"error": f"Video processing failed: {video_file.state.name}"}
+                )
+
+            # Make the LLM request with a longer timeout
+            model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-latest")
+            response = model.generate_content(
+                [video_file, prompt], request_options={"timeout": 1200}  # 20 minutes
+            )
+
+            return json.dumps({"analysis": response.text})
+
+        except Exception as e:
+            return json.dumps({"error": str(e)})
+        finally:
+            # Clean up the file from the Gemini API server
+            if video_file:
+                try:
+                    genai.delete_file(video_file.name)
+                except Exception as e:
+                    print(f"Error deleting Gemini file {video_file.name}: {e}")
+            # Clean up the local temporary file
+            os.remove(temp_local_file.name)

@@ -3,12 +3,14 @@ import json
 import time
 
 from tools.tools import (
+    analyze_video_with_gemini,
     delete_videos_from_container,
     get_video_transcript,
     get_videos_creation_timestamps,
     list_videos_in_container,
     merge_videos_in_container,
 )
+from tools.video_utils import process_video
 
 
 async def main():
@@ -29,6 +31,36 @@ async def main():
         print("-" * 40)
         print()
         print("✅ Test completed successfully!")
+
+    except Exception as e:
+        print(f"❌ Test failed with error: {str(e)}")
+        import traceback
+
+        traceback.print_exc()
+
+    print()
+    print("--- Testing get_videos_creation_timestamps Tool ---")
+    print()
+
+    try:
+        # Get the list of videos in the container
+        start_time = time.monotonic()
+        videos_json = await list_videos_in_container()
+        videos = json.loads(videos_json)["videos"]
+
+        # If there are videos, get their timestamps
+        if videos:
+            result = await get_videos_creation_timestamps(videos)
+            end_time = time.monotonic()
+            print(f"Execution time: {end_time - start_time:.4f} seconds")
+            print("Tool Output:")
+            print("-" * 40)
+            print(result)
+            print("-" * 40)
+            print()
+            print("✅ Test completed successfully!")
+        else:
+            print("No videos available to get timestamps. Skipping test.")
 
     except Exception as e:
         print(f"❌ Test failed with error: {str(e)}")
@@ -70,7 +102,7 @@ async def main():
         traceback.print_exc()
 
     print()
-    print("--- Testing get_videos_creation_timestamps Tool ---")
+    print("--- Testing process_video Tool ---")
     print()
 
     try:
@@ -79,9 +111,42 @@ async def main():
         videos_json = await list_videos_in_container()
         videos = json.loads(videos_json)["videos"]
 
-        # If there are videos, get their timestamps
+        # If there is at least one video, process it
         if videos:
-            result = await get_videos_creation_timestamps(videos)
+            await process_video("merged_test_video.mp4", "results")
+            end_time = time.monotonic()
+            print(f"Execution time: {end_time - start_time:.4f} seconds")
+            print("Tool Output:")
+            print("-" * 40)
+            print(f"Successfully processed video: merged_test_video.mp4")
+            print("-" * 40)
+            print()
+            print("✅ Test completed successfully!")
+        else:
+            print("No videos available to process. Skipping test.")
+
+    except Exception as e:
+        print(f"❌ Test failed with error: {str(e)}")
+        import traceback
+
+        traceback.print_exc()
+
+    print()
+    print("--- Testing analyze_video_with_gemini Tool ---")
+    print()
+
+    try:
+        # Get the list of videos in the container
+        start_time = time.monotonic()
+        videos_json = await list_videos_in_container()
+        videos = json.loads(videos_json)["videos"]
+
+        # If there is at least one video, analyze it
+        if videos:
+            prompt = "What is the main topic of this video?"
+            result = await analyze_video_with_gemini(
+                "merged_test_video.mp4", prompt, "results"
+            )
             end_time = time.monotonic()
             print(f"Execution time: {end_time - start_time:.4f} seconds")
             print("Tool Output:")
@@ -91,7 +156,7 @@ async def main():
             print()
             print("✅ Test completed successfully!")
         else:
-            print("No videos available to get timestamps. Skipping test.")
+            print("No videos available to analyze. Skipping test.")
 
     except Exception as e:
         print(f"❌ Test failed with error: {str(e)}")
