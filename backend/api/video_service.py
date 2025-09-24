@@ -1,0 +1,63 @@
+import os
+import shutil
+
+from dotenv import load_dotenv
+from fastapi import HTTPException, UploadFile
+
+load_dotenv()
+
+STORAGE_PATH = os.getenv("STORAGE_PATH", "/app/storage/videos")
+ALLOWED_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv"}
+
+
+def save_video(file: UploadFile):
+    """
+    Saves an uploaded video to the storage volume.
+    """
+    file_extension = os.path.splitext(file.filename)[1].lower()
+    if file_extension not in ALLOWED_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type. Allowed extensions are: {', '.join(ALLOWED_EXTENSIONS)}",
+        )
+
+    if not os.path.exists(STORAGE_PATH):
+        os.makedirs(STORAGE_PATH)
+
+    file_path = os.path.join(STORAGE_PATH, file.filename)
+    if os.path.exists(file_path):
+        raise HTTPException(
+            status_code=409, detail="File with the same name already exists"
+        )
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return {"message": f"Successfully uploaded {file.filename}"}
+
+
+def delete_video(filename: str):
+    """
+    Deletes a video from the storage volume.
+    """
+    file_path = os.path.join(STORAGE_PATH, filename)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Video not found")
+
+    os.remove(file_path)
+    return {"message": f"Successfully deleted {filename}"}
+
+
+def list_videos():
+    """
+    Lists all videos in the storage volume.
+    """
+    if not os.path.exists(STORAGE_PATH):
+        return {"videos": []}
+
+    videos = [
+        f
+        for f in os.listdir(STORAGE_PATH)
+        if os.path.isfile(os.path.join(STORAGE_PATH, f))
+    ]
+    return {"videos": videos}
