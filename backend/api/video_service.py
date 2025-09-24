@@ -36,11 +36,21 @@ def save_video(file: UploadFile):
     return {"message": f"Successfully uploaded {file.filename}"}
 
 
-def delete_video(filename: str):
+def delete_video(filename: str, source: str = "videos"):
     """
     Deletes a video from the storage volume.
     """
-    file_path = os.path.join(STORAGE_PATH, filename)
+    # Map source to directory
+    source_map = {
+        "videos": STORAGE_PATH,
+        "results": "/app/storage/results",
+        "temp": "/app/storage/temp",
+    }
+
+    if source not in source_map:
+        raise HTTPException(status_code=400, detail="Invalid source")
+
+    file_path = os.path.join(source_map[source], filename)
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Video not found")
 
@@ -52,12 +62,32 @@ def list_videos():
     """
     Lists all videos in the storage volume.
     """
-    if not os.path.exists(STORAGE_PATH):
-        return {"videos": []}
+    result = {"videos": [], "results": [], "temp": []}
 
-    videos = [
-        f
-        for f in os.listdir(STORAGE_PATH)
-        if os.path.isfile(os.path.join(STORAGE_PATH, f))
-    ]
-    return {"videos": videos}
+    # List videos
+    if os.path.exists(STORAGE_PATH):
+        result["videos"] = [
+            f
+            for f in os.listdir(STORAGE_PATH)
+            if os.path.isfile(os.path.join(STORAGE_PATH, f))
+        ]
+
+    # List results
+    results_path = "/app/storage/results"
+    if os.path.exists(results_path):
+        result["results"] = [
+            f
+            for f in os.listdir(results_path)
+            if os.path.isfile(os.path.join(results_path, f))
+        ]
+
+    # List temp files
+    temp_path = "/app/storage/temp"
+    if os.path.exists(temp_path):
+        result["temp"] = [
+            f
+            for f in os.listdir(temp_path)
+            if os.path.isfile(os.path.join(temp_path, f))
+        ]
+
+    return result
