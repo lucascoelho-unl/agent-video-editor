@@ -21,9 +21,6 @@ def save_video(file: UploadFile):
             detail=f"Invalid file type. Allowed extensions are: {', '.join(ALLOWED_EXTENSIONS)}",
         )
 
-    if not os.path.exists(STORAGE_PATH):
-        os.makedirs(STORAGE_PATH)
-
     file_path = os.path.join(STORAGE_PATH, file.filename)
     if os.path.exists(file_path):
         raise HTTPException(

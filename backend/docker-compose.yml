@@ -9,7 +9,7 @@ services:
       - "8002:8002"
     volumes:
       - ./api:/app
-      - video_storage:/app/storage/
+      - video_storage:/app/storage
     restart: unless-stopped
 
   agent:
@@ -19,10 +19,10 @@ services:
     env_file:
       - ./agent_worker/agent/.env
     ports:
-      - "8000:8000"
+      - "8000"
     volumes:
       - ./agent_worker:/app
-      - video_storage:/app/storage/
+      - video_storage:/app/storage
     restart: unless-stopped
     environment:
       - PYTHONUNBUFFERED=1

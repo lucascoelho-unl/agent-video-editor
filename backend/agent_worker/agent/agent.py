@@ -23,7 +23,7 @@ mcp_toolset = MCPToolset(
 
 root_agent = Agent(
     name="video_editor_agent",
-    model="gemini-2.5-pro",
+    model="gemini-2.5-flash",
     description=(agent_description),
     instruction=(agent_instruction),
     tools=[mcp_toolset],

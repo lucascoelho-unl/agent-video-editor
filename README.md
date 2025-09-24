@@ -8,50 +8,19 @@ cd backend\
 adk web
 
 cd backend:\
--docker-compose down\
--docker-compose up -d\
--docker-compose logs -f\
--docker-compose build --no-cache
 
-- TODO: Log all parts of the merging videos function to spot what is taking longer and improve eficiency.
+- docker-compose down\
+- docker-compose up -d\
+- docker-compose logs -f\
+- docker-compose build --no-cache\
+- docker-compose up --scale agent=2 --build -d
+
 - TODO: Create video processing to store information in the container. Video processing whenever it is uploaded with transctips, time stamps, metadata etc
 - TODO: Add following agent specialized in analizing transcript context and organizing the merging order
 - TODO: Move video processing to when user clicks edit button.
 - TODO: Make sure merged videos have the same proportions for quality sake
-
----
-
-TODO HIGHEST PRIORITY: Organize building blocks for major future upcomings (have building blocks ready) Code organization and simplicity is top priority right now.
-
----
-
-TODO BIIIG REFACTORING: Scalability Roadmap
-
-Phase 1 (Refactor Locally):
-
-- Separate your current backend into two parts: the API server (FastAPI) and the worker logic.
-- Introduce Redis and Celery into your docker-compose.yml file.
-- Change the API to add jobs to the queue instead of doing the work itself.
-- Modify your video processing code to run as a Celery worker that listens to the queue.
-
-Phase 2 (Initial Deployment):
-
-- Deploy your docker-compose stack to a single VM on a cloud provider (e.g., DigitalOcean, AWS EC2).
-- Use managed services for your database (e.g., AWS RDS) and file storage (AWS S3) from the start.
-
-Phase 3 (True Scaling):
-
-- When you need more power than one VM can provide, migrate your containers from the VM to a container orchestration service like AWS ECS or Google Cloud Run.
-- Set up auto-scaling rules for your workers based on the length of the job queue.
-- This architecture is the standard for building scalable, resilient applications and will provide the excellent building blocks you're looking for.
-
----
-
-TODO: Add following agent specialized in analizing transcript context and organizing the merging order
-TODO: Move video processing to when user clicks edit button. (need to have an edit button)
-TODO: Make sure merged videos have the same proportions for quality sake
-TODO: Make cuts inside the video for simplicity and pacing. Remove buzzwords per say, and repetitive video parts overall (I think this gemini tool will be extremelly helpful for this. https://www.youtube.com/watch?v=6OhqVQ0lO1g)
-TODO: Make tool communication by HTTP Stremable Manager (just like creevo)
+- TODO: Make cuts inside the video for simplicity and pacing. Remove buzzwords per say, and repetitive video parts overall (I think this gemini tool will be extremelly helpful for this. https://www.youtube.com/watch?v=6OhqVQ0lO1g)
+- TODO: Make tool communication by HTTP Stremable Manager (just like creevo)
 
 ---
 

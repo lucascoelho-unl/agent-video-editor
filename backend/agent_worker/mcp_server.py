@@ -8,12 +8,7 @@ from typing import Any, Dict
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool
-from tools.tools import (
-    analyze_video_with_gemini,
-    delete_videos,
-    list_videos,
-    merge_videos,
-)
+from tools.tools import analyze_videos, list_videos
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -29,9 +24,7 @@ async def create_mcp_server():
 
     tool_logic_registry = {
         "list_videos": list_videos,
-        "delete_videos": delete_videos,
-        "merge_videos": merge_videos,
-        "analyze_video_with_gemini": analyze_video_with_gemini,
+        "analyze_videos": analyze_videos,
     }
 
     async def run_tool(name: str, **kwargs):
@@ -64,67 +57,26 @@ async def create_mcp_server():
                 },
             ),
             Tool(
-                name="delete_videos",
-                description="Deletes one or more videos from a specified directory.",
+                name="analyze_videos",
+                description="Analyzes multiple video files (or one if only one is provided) with a multimodal AI model to understand their content. Provide a list of video filenames and a text prompt.",
                 inputSchema={
                     "type": "object",
                     "properties": {
                         "video_filenames": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "List of video filenames to delete.",
-                        },
-                        "directory": {
-                            "type": "string",
-                            "description": "The directory to delete videos from (default: 'videos').",
-                        },
-                    },
-                    "required": ["video_filenames"],
-                },
-            ),
-            Tool(
-                name="merge_videos",
-                description="Merges multiple videos into a single file.",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "video_filenames": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": "List of video filenames to merge in order.",
-                        },
-                        "output_filename": {
-                            "type": "string",
-                            "description": "The filename for the merged video.",
-                        },
-                        "directory": {
-                            "type": "string",
-                            "description": "The directory where the videos are located (default: 'videos').",
-                        },
-                    },
-                    "required": ["video_filenames", "output_filename"],
-                },
-            ),
-            Tool(
-                name="analyze_video_with_gemini",
-                description="Analyzes a video file with a multimodal AI model to understand its content. Provide a video filename and a text prompt.",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "video_filename": {
-                            "type": "string",
-                            "description": "The filename of the video to analyze (e.g., 'video1.mp4').",
+                            "description": "A list of filenames of the videos to analyze (e.g., ['video1.mp4', 'video2.mp4']).",
                         },
                         "prompt": {
                             "type": "string",
-                            "description": "The text prompt for the analysis (e.g., 'Describe what is happening in this video.').",
+                            "description": "The text prompt for the analysis (e.g., 'Describe what is happening in these videos.').",
                         },
                         "source_directory": {
                             "type": "string",
-                            "description": "The directory to get the video from (default: 'videos').",
+                            "description": "The directory to get the videos from (default: 'videos').",
                         },
                     },
-                    "required": ["video_filename", "prompt"],
+                    "required": ["video_filenames", "prompt"],
                 },
             ),
         ]
