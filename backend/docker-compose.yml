@@ -1,19 +1,37 @@
 services:
-  video-tools:
+  api:
     build:
-      context: .
-      dockerfile: docker/Dockerfile
-    container_name: video-editor-tools
-    # No volume mounts - videos stay in container only
-    environment:
-      - PYTHONUNBUFFERED=1
-    # Keep container running for video processing
-    command: tail -f /dev/null
+      context: ./api
+      dockerfile: Dockerfile
+    env_file:
+      - ./api/.env
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./api:/app
+      - video_storage:/app/storage
     restart: unless-stopped
 
-    # --- Add this section for resource limits ---
+  agent:
+    build:
+      context: ./agent_worker
+      dockerfile: Dockerfile
+    env_file:
+      - ./agent_worker/agent/.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./agent_worker:/app
+      - video_storage:/app/storage
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
     deploy:
       resources:
         limits:
-          cpus: '4.0'   # Limit to 4 CPU cores
-          memory: 4G    # Limit to 4 Gigabytes of memory
+          cpus: '4.0'
+          memory: 4G
+
+volumes:
+  video_storage:
+    driver: local
