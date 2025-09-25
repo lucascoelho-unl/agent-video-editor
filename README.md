@@ -15,10 +15,8 @@ cd backend:\
 - docker-compose build --no-cache\
 - docker-compose up --scale agent=2 --build -d
 
-- TODO: Create video processing to store information in the container. Video processing whenever it is uploaded with transctips, time stamps, metadata etc
 - TODO: Add following agent specialized in analizing transcript context and organizing the merging order
 - TODO: Move video processing to when user clicks edit button.
-- TODO: Make sure merged videos have the same proportions for quality sake
 - TODO: Make cuts inside the video for simplicity and pacing. Remove buzzwords per say, and repetitive video parts overall (I think this gemini tool will be extremelly helpful for this. https://www.youtube.com/watch?v=6OhqVQ0lO1g)
 - TODO: Make tool communication by HTTP Stremable Manager (just like creevo)
 

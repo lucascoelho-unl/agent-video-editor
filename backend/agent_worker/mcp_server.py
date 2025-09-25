@@ -2,13 +2,18 @@ import asyncio
 import json
 import logging
 import sys
-import traceback
 from typing import Any, Dict
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool
-from tools.tools import analyze_videos, list_videos
+from tools.tools import (
+    analyze_videos,
+    execute_edit_script,
+    list_available_videos,
+    modify_edit_script,
+    read_edit_script,
+)
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -23,8 +28,11 @@ async def create_mcp_server():
     )
 
     tool_logic_registry = {
-        "list_videos": list_videos,
         "analyze_videos": analyze_videos,
+        "read_edit_script": read_edit_script,
+        "modify_edit_script": modify_edit_script,
+        "execute_edit_script": execute_edit_script,
+        "list_available_videos": list_available_videos,
     }
 
     async def run_tool(name: str, **kwargs):
@@ -43,19 +51,6 @@ async def create_mcp_server():
         Creates and returns a list of all tools available on the server.
         """
         return [
-            Tool(
-                name="list_videos",
-                description="Lists all videos in a specified directory.",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "directory": {
-                            "type": "string",
-                            "description": "The directory to list videos from (default: 'videos').",
-                        }
-                    },
-                },
-            ),
             Tool(
                 name="analyze_videos",
                 description="Analyzes multiple video files (or one if only one is provided) with a multimodal AI model to understand their content. Provide a list of video filenames and a text prompt.",
@@ -77,6 +72,76 @@ async def create_mcp_server():
                         },
                     },
                     "required": ["video_filenames", "prompt"],
+                },
+            ),
+            Tool(
+                name="read_edit_script",
+                description="Reads the current content of the edit.sh script that can be modified for video editing.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {},
+                },
+            ),
+            Tool(
+                name="modify_edit_script",
+                description="Replace the entire edit.sh script with new content. Use this to modify the script for different video editing tasks.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "script_content": {
+                            "type": "string",
+                            "description": "The complete Python script content to write to edit.sh.",
+                        },
+                    },
+                    "required": ["script_content"],
+                },
+            ),
+            Tool(
+                name="execute_edit_script",
+                description="Executes the edit.sh script with specified input video files and output file.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "input_files": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "List of input video file paths to process.",
+                        },
+                        "output_file": {
+                            "type": "string",
+                            "description": "Output file name (default: 'output.mp4').",
+                        },
+                    },
+                    "required": ["input_files"],
+                },
+            ),
+            Tool(
+                name="list_available_videos",
+                description="Lists all video files available in the storage directory. Optionally includes metadata and sorts by a specified field.",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "include_metadata": {
+                            "type": "boolean",
+                            "description": "Whether to include detailed metadata (creation time, file size, etc.). Defaults to False.",
+                        },
+                        "sort_by": {
+                            "type": "string",
+                            "description": "The metadata field to sort by. Valid fields are 'filename', 'size_bytes', 'creation_timestamp', 'modification_timestamp', 'access_timestamp'. Defaults to 'creation_timestamp'. Only applies when include_metadata is True.",
+                            "enum": [
+                                "filename",
+                                "size_bytes",
+                                "creation_timestamp",
+                                "modification_timestamp",
+                                "access_timestamp",
+                            ],
+                        },
+                        "sort_order": {
+                            "type": "string",
+                            "description": "The sort order. Valid values are 'asc' (ascending) and 'desc' (descending). Defaults to 'desc'. Only applies when include_metadata is True.",
+                            "enum": ["asc", "desc"],
+                        },
+                    },
                 },
             ),
         ]

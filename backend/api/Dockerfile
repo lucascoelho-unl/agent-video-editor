@@ -5,7 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
-RUN mkdir -p /app/storage/videos /app/storage/results /app/storage/temp
+RUN mkdir -p /app/storage/videos
 
 COPY . .
 

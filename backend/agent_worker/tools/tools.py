@@ -2,7 +2,9 @@ import asyncio
 import json
 import logging
 import os
+import subprocess
 import time
+from datetime import datetime
 
 import dotenv
 import google.generativeai as genai
@@ -16,13 +18,6 @@ genai.configure(api_key=gemini_api_key)
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
-
-
-async def list_videos(directory: str = "videos") -> str:
-    """
-    Lists all videos in a specified directory.
-    """
-    return json.dumps({"videos": os.listdir(f"/app/storage/{directory}")})
 
 
 async def analyze_videos(
@@ -59,7 +54,9 @@ async def analyze_videos(
 
         # Create and run upload tasks in parallel
         tasks = [_upload_and_process(fname) for fname in video_filenames]
+        logging.info(f"Tasks: {tasks}")
         results = await asyncio.gather(*tasks)
+        logging.info(f"Results: {results}")
 
         # Filter out any files that failed to upload/process
         uploaded_files = [res for res in results if res is not None]
@@ -68,7 +65,7 @@ async def analyze_videos(
 
         # --- GENERATE CONTENT WITH ALL VIDEOS ---
         logging.info("Generating content with Gemini using all videos...")
-        model = genai.GenerativeModel(model_name="models/gemini-1.5-pro-latest")
+        model = genai.GenerativeModel(model_name="models/gemini-2.5-pro")
 
         # Combine the prompt and the list of uploaded video files
         content_to_send = [prompt] + uploaded_files
@@ -95,3 +92,160 @@ async def analyze_videos(
             ]
             await asyncio.gather(*delete_tasks)
             logging.info("Successfully deleted all Gemini files.")
+
+
+async def list_available_videos(
+    include_metadata: bool = False,
+    sort_by: str = "creation_timestamp",
+    sort_order: str = "desc",
+) -> str:
+    """
+    Lists all video files available in the storage directory.
+    Optionally includes metadata and sorts by a specified field.
+    """
+    try:
+        video_dir = "/app/storage/videos"
+        if not os.path.exists(video_dir):
+            return json.dumps({"videos": []})
+
+        video_files = []
+        for file in os.listdir(video_dir):
+            if file.lower().endswith(
+                (".mp4", ".mov", ".avi", ".mkv", ".webm", ".flv", ".wmv")
+            ):
+                if include_metadata:
+                    file_path = os.path.join(video_dir, file)
+                    stat = os.stat(file_path)
+
+                    # Get file metadata
+                    metadata = {
+                        "filename": file,
+                        "size_bytes": stat.st_size,
+                        "size_mb": round(stat.st_size / (1024 * 1024), 2),
+                        "creation_time": datetime.fromtimestamp(
+                            stat.st_ctime
+                        ).isoformat(),
+                        "modification_time": datetime.fromtimestamp(
+                            stat.st_mtime
+                        ).isoformat(),
+                        "access_time": datetime.fromtimestamp(
+                            stat.st_atime
+                        ).isoformat(),
+                        "creation_timestamp": stat.st_ctime,
+                        "modification_timestamp": stat.st_mtime,
+                        "access_timestamp": stat.st_atime,
+                    }
+                    video_files.append(metadata)
+                else:
+                    # Simple filename only
+                    video_files.append(file)
+
+        # Sort by a specified field if metadata is included
+        if include_metadata and sort_by:
+            if sort_by not in [
+                "filename",
+                "size_bytes",
+                "creation_timestamp",
+                "modification_timestamp",
+                "access_timestamp",
+            ]:
+                return json.dumps({"error": f"Invalid sort_by field: {sort_by}"})
+
+            reverse = sort_order.lower() == "desc"
+            video_files.sort(key=lambda x: x[sort_by], reverse=reverse)
+
+        if include_metadata:
+            return json.dumps(
+                {
+                    "videos": video_files,
+                    "total_count": len(video_files),
+                    "sorted_by": sort_by if sort_by else "None",
+                    "sort_order": sort_order if sort_by else "None",
+                }
+            )
+        else:
+            return json.dumps({"videos": video_files})
+    except Exception as e:
+        return json.dumps({"error": f"Failed to list videos: {str(e)}"})
+
+
+async def read_edit_script() -> str:
+    """
+    Reads the current content of the edit.sh script.
+    """
+    try:
+        script_path = "/app/edit.sh"
+        with open(script_path, "r") as f:
+            content = f.read()
+        return json.dumps({"script_content": content})
+    except FileNotFoundError:
+        return json.dumps({"error": "edit.sh script not found"})
+    except Exception as e:
+        return json.dumps({"error": f"Failed to read script: {str(e)}"})
+
+
+async def modify_edit_script(script_content: str) -> str:
+    """
+    Replace the entire edit.sh script with new content.
+    """
+    try:
+        script_path = "/app/edit.sh"
+
+        # Write the new script content
+        with open(script_path, "w", encoding="utf-8") as f:
+            f.write(script_content)
+
+        bytes_written = len(script_content.encode("utf-8"))
+
+        return json.dumps(
+            {
+                "success": True,
+                "message": f"edit.sh script updated successfully ({bytes_written} bytes written)",
+            }
+        )
+
+    except Exception as e:
+        return json.dumps({"error": f"Failed to update edit.sh script: {str(e)}"})
+
+
+async def execute_edit_script(
+    input_files: list[str], output_file: str = "output.mp4"
+) -> str:
+    """
+    Executes the edit.sh script asynchronously with the specified files.
+    The script is expected to take input files as arguments, followed by the output file.
+    """
+    script_path = "/app/edit.sh"
+    # Note: The script should be made executable during deployment, not here.
+    # e.g., in a Dockerfile: RUN chmod +x /app/edit.sh
+
+    if not os.path.exists(script_path):
+        return json.dumps({"success": False, "error": "edit.sh not found"})
+
+    try:
+        # Build the command
+        cmd = ["bash", script_path] + input_files + [output_file]
+
+        # Execute the command asynchronously
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd="/app/storage/videos",
+        )
+
+        # Wait for the process to finish and capture the output
+        stdout, stderr = await process.communicate()
+
+        if process.returncode == 0:
+            return json.dumps(
+                {"success": True, "output": stdout.decode(), "output_file": output_file}
+            )
+        else:
+            return json.dumps(
+                {"success": False, "error": stderr.decode(), "stdout": stdout.decode()}
+            )
+    except Exception as e:
+        return json.dumps(
+            {"success": False, "error": f"Failed to execute script: {str(e)}"}
+        )

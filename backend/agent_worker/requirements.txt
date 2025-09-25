@@ -1,6 +1,4 @@
-google-generativeai
+google-generativeai>=0.7.1
 python-dotenv>=1.0.1
-moviepy>=1.0.3
-mcp
-google-adk
-ffmpeg-python
+mcp>=0.0.1
+google-adk>=0.0.1
