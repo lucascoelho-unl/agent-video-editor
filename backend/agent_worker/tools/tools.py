@@ -54,9 +54,7 @@ async def analyze_videos(
 
         # Create and run upload tasks in parallel
         tasks = [_upload_and_process(fname) for fname in video_filenames]
-        logging.info(f"Tasks: {tasks}")
         results = await asyncio.gather(*tasks)
-        logging.info(f"Results: {results}")
 
         # Filter out any files that failed to upload/process
         uploaded_files = [res for res in results if res is not None]
