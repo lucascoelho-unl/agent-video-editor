@@ -19,7 +19,7 @@ services:
     env_file:
       - ./agent_worker/agent/.env
     ports:
-      - "8000"
+      - "8000:8000"
     volumes:
       - ./agent_worker:/app
       - video_storage:/app/storage
