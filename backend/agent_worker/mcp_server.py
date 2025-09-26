@@ -13,7 +13,6 @@ from tools.tools import (
     list_available_videos,
     modify_edit_script,
     read_edit_script,
-    save_videos_as_artifacts,
 )
 
 logging.basicConfig(
@@ -34,7 +33,6 @@ async def create_mcp_server():
         "modify_edit_script": modify_edit_script,
         "execute_edit_script": execute_edit_script,
         "list_available_videos": list_available_videos,
-        "save_videos_as_artifacts": save_videos_as_artifacts,
     }
 
     async def run_tool(name: str, **kwargs):
@@ -157,25 +155,6 @@ async def create_mcp_server():
                             "enum": ["asc", "desc"],
                         },
                     },
-                },
-            ),
-            Tool(
-                name="save_videos_as_artifacts",
-                description="Reads multiple video files and saves them as versioned artifacts using the ArtifactService. This allows videos to be stored and versioned for later retrieval and processing.",
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "video_filenames": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": "A list of filenames of the videos to save as artifacts (e.g., ['video1.mp4', 'video2.mp4']).",
-                        },
-                        "source_directory": {
-                            "type": "string",
-                            "description": "The directory to get the videos from (default: 'videos'). Videos are stored in /app/storage/videos/.",
-                        },
-                    },
-                    "required": ["video_filenames"],
                 },
             ),
         ]

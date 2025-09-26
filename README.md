@@ -15,6 +15,9 @@ cd backend:\
 - docker-compose build --no-cache\
 - docker-compose up --scale agent=2 --build -d
 
+inside docker:
+adk run agent
+
 - TODOOOO: Improve error handling on edit.sh script to catch all exceptions.
 
 - TODO: Add following agent specialized in analizing transcript context and organizing the merging order

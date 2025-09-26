@@ -5,9 +5,7 @@ import os
 from datetime import datetime
 
 import dotenv
-import google.genai.types as types
 import google.generativeai as genai
-from agent.main import artifact_service
 
 SCRIPTS_PATH = "/app/storage/scripts"
 VIDEOS_PATH = "/app/storage/videos"
@@ -22,61 +20,6 @@ genai.configure(api_key=gemini_api_key)
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
-
-
-async def save_videos_as_artifacts(
-    video_filenames: list[str],
-    source_directory: str = "videos",
-) -> str:
-    """
-    Reads multiple video files and saves them as versioned artifacts
-    using the provided ArtifactService.
-    """
-    results = {"success": [], "failed": []}
-
-    async def _save_one_artifact(filename: str):
-        """Helper function to process and save a single video file."""
-        video_path = f"/app/storage/{source_directory}/{filename}"
-        if not os.path.exists(video_path):
-            logging.error(f"Video file not found: {video_path}")
-            results["failed"].append({filename: "File not found"})
-            return
-
-        try:
-            # 1. Read the video file into bytes
-            logging.info(f"Reading video file: {video_path}")
-            with open(video_path, "rb") as f:
-                video_bytes = await asyncio.to_thread(f.read)
-
-            # 2. Create the artifact Part from the bytes
-            logging.info(f"Creating artifact for {filename}")
-            video_artifact = types.Part.from_bytes(
-                data=video_bytes, mime_type="video/mp4"
-            )
-
-            # 3. Save the artifact using the provided service
-            logging.info(f"Saving artifact: {filename}")
-            version = await artifact_service.save_artifact(
-                app_name="video_editor_agent",
-                user_id="1",
-                session_id="1",
-                filename=filename,  # Use the actual filename for the artifact
-                artifact=video_artifact,
-            )
-
-            logging.info(f"Successfully saved {filename} as version {version}.")
-            results["success"].append({filename: f"Saved as version {version}"})
-
-        except Exception as e:
-            logging.error(f"Failed to save artifact for {filename}: {e}")
-            results["failed"].append({filename: str(e)})
-
-    # --- SAVE ARTIFACTS CONCURRENTLY ---
-    save_tasks = [_save_one_artifact(fname) for fname in video_filenames]
-    await asyncio.gather(*save_tasks)
-
-    logging.info("Finished processing all video files.")
-    return json.dumps(results, indent=2)
 
 
 async def analyze_videos(
