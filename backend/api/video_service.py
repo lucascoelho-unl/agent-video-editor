@@ -9,12 +9,14 @@ load_dotenv()
 STORAGE_PATH = os.getenv("STORAGE_PATH", "/app/storage/videos")
 RESULTS_PATH = os.path.join(STORAGE_PATH, "results")
 TEMP_PATH = os.path.join(STORAGE_PATH, "temp")
-ALLOWED_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv"}
+ALLOWED_VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv"}
+ALLOWED_AUDIO_EXTENSIONS = {".mp3", ".wav", ".aac", ".flac", ".ogg", ".m4a", ".wma"}
+ALLOWED_EXTENSIONS = ALLOWED_VIDEO_EXTENSIONS | ALLOWED_AUDIO_EXTENSIONS
 
 
-def save_video(file: UploadFile):
+def save_media_file(file: UploadFile):
     """
-    Saves an uploaded video to the storage volume.
+    Saves an uploaded video or audio file to the storage volume.
     """
     file_extension = os.path.splitext(file.filename)[1].lower()
     if file_extension not in ALLOWED_EXTENSIONS:
@@ -32,12 +34,13 @@ def save_video(file: UploadFile):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    return {"message": f"Successfully uploaded {file.filename}"}
+    file_type = "video" if file_extension in ALLOWED_VIDEO_EXTENSIONS else "audio"
+    return {"message": f"Successfully uploaded {file_type} file: {file.filename}"}
 
 
-def delete_video(filename: str, source: str = "videos"):
+def delete_media_file(filename: str, source: str = "videos"):
     """
-    Deletes a video from the storage volume.
+    Deletes a video or audio file from the storage volume.
     """
     # Map source to directory
     source_map = {
@@ -51,25 +54,33 @@ def delete_video(filename: str, source: str = "videos"):
 
     file_path = os.path.join(source_map[source], filename)
     if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="Video not found")
+        raise HTTPException(status_code=404, detail="Media file not found")
 
     os.remove(file_path)
     return {"message": f"Successfully deleted {filename}"}
 
 
-def list_videos():
+def list_media_files():
     """
-    Lists all videos in the storage volume.
+    Lists all video and audio files in the storage volume.
     """
-    result = {"videos": [], "results": [], "temp": []}
+    result = {"videos": [], "audio": [], "results": [], "temp": []}
 
-    # List videos (excluding subdirectories)
+    # List media files (excluding subdirectories)
     if os.path.exists(STORAGE_PATH):
-        result["videos"] = [
+        all_files = [
             f
             for f in os.listdir(STORAGE_PATH)
             if os.path.isfile(os.path.join(STORAGE_PATH, f))
         ]
+
+        # Separate video and audio files
+        for file in all_files:
+            file_extension = os.path.splitext(file)[1].lower()
+            if file_extension in ALLOWED_VIDEO_EXTENSIONS:
+                result["videos"].append(file)
+            elif file_extension in ALLOWED_AUDIO_EXTENSIONS:
+                result["audio"].append(file)
 
     # List results from videos/results directory
     if os.path.exists(RESULTS_PATH):

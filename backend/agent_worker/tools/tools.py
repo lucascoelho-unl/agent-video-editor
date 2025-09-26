@@ -10,6 +10,11 @@ import google.generativeai as genai
 SCRIPTS_PATH = "/app/storage/scripts"
 VIDEOS_PATH = "/app/storage/videos"
 
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+# Configure Gemini API
 dotenv.load_dotenv(dotenv_path="agent/.env")
 gemini_api_key = os.environ.get("GOOGLE_API_KEY")
 if not gemini_api_key:
@@ -17,57 +22,76 @@ if not gemini_api_key:
 genai.configure(api_key=gemini_api_key)
 
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-
-
-async def analyze_videos(
-    video_filenames: list[str], prompt: str, source_directory: str = "videos"
+async def analyze_media_files(
+    media_filenames: list[str], prompt: str, source_directory: str = "videos"
 ) -> str:
     """
-    Analyzes multiple video files with the Gemini API in a single call
+    Analyzes multiple video and audio files with the Gemini API in a single call
     and returns a text-based analysis.
     """
+
+    # Upload and process media files concurrently
     uploaded_files = []
     try:
-        # --- UPLOAD AND PROCESS VIDEOS CONCURRENTLY ---
+
         async def _upload_and_process(filename):
-            video_path = f"/app/storage/{source_directory}/{filename}"
-            if not os.path.exists(video_path):
-                logging.error(f"Video file not found: {video_path}")
-                # Return None or raise an exception to signal failure
+            media_path = f"/app/storage/{source_directory}/{filename}"
+            if not os.path.exists(media_path):
+                logging.error(f"Media file not found: {media_path}")
                 return None
 
             logging.info(f"Uploading {filename} to Gemini...")
-            video_file = await asyncio.to_thread(genai.upload_file, path=video_path)
 
-            # Wait for the video to be processed
-            while video_file.state.name == "PROCESSING":
+            # Determine MIME type based on file extension
+            file_extension = os.path.splitext(filename)[1].lower()
+            mime_type_map = {
+                ".mp4": "video/mp4",
+                ".avi": "video/x-msvideo",
+                ".mov": "video/quicktime",
+                ".mkv": "video/x-matroska",
+                ".webm": "video/webm",
+                ".mp3": "audio/mpeg",
+                ".wav": "audio/wav",
+                ".aac": "audio/aac",
+                ".flac": "audio/flac",
+                ".ogg": "audio/ogg",
+                ".m4a": "audio/mp4",
+                ".wma": "audio/x-ms-wma",
+            }
+            mime_type = mime_type_map.get(file_extension, "application/octet-stream")
+
+            media_file = await asyncio.to_thread(
+                genai.upload_file, path=media_path, mime_type=mime_type
+            )
+
+            # Wait for the media file to be processed
+            while media_file.state.name == "PROCESSING":
                 await asyncio.sleep(5)
-                video_file = await asyncio.to_thread(genai.get_file, video_file.name)
+                media_file = await asyncio.to_thread(genai.get_file, media_file.name)
 
-            if video_file.state.name == "FAILED":
+            if media_file.state.name == "FAILED":
                 logging.error(f"Processing failed for {filename}")
                 return None
 
             logging.info(f"Successfully processed {filename}")
-            return video_file
+            return media_file
 
         # Create and run upload tasks in parallel
-        tasks = [_upload_and_process(fname) for fname in video_filenames]
+        tasks = [_upload_and_process(fname) for fname in media_filenames]
         results = await asyncio.gather(*tasks)
 
         # Filter out any files that failed to upload/process
         uploaded_files = [res for res in results if res is not None]
         if not uploaded_files:
-            return json.dumps({"error": "All video uploads failed or were not found."})
+            return json.dumps(
+                {"error": "All media file uploads failed or were not found."}
+            )
 
-        # --- GENERATE CONTENT WITH ALL VIDEOS ---
-        logging.info("Generating content with Gemini using all videos...")
+        # Generate content with Gemini using all media files
+        logging.info("Generating content with Gemini using all media files...")
         model = genai.GenerativeModel(model_name="models/gemini-2.5-pro")
 
-        # Combine the prompt and the list of uploaded video files
+        # Combine the prompt and the list of uploaded media files
         content_to_send = [prompt] + uploaded_files
 
         response = await asyncio.to_thread(
@@ -76,7 +100,7 @@ async def analyze_videos(
             request_options={"timeout": 1200},
         )
 
-        logging.info("Successfully analyzed videos with Gemini.")
+        logging.info("Successfully analyzed media files with Gemini.")
         return json.dumps({"analysis": response.text})
 
     except Exception as e:
@@ -84,7 +108,7 @@ async def analyze_videos(
         return json.dumps({"error": str(e)})
 
     finally:
-        # --- CLEANUP: DELETE ALL UPLOADED FILES ---
+        # Delete all uploaded files
         if uploaded_files:
             logging.info("Deleting Gemini files...")
             delete_tasks = [
@@ -94,20 +118,21 @@ async def analyze_videos(
             logging.info("Successfully deleted all Gemini files.")
 
 
-async def list_available_videos(
+async def list_available_media_files(
     include_metadata: bool = False,
     sort_by: str = "creation_timestamp",
     sort_order: str = "desc",
 ) -> str:
     """
-    Lists all video files available in the storage directory.
+    Lists all video and audio files available in the storage directory.
     Optionally includes metadata and sorts by a specified field.
     """
     try:
         if not os.path.exists(VIDEOS_PATH):
-            return json.dumps({"videos": []})
+            return json.dumps({"videos": [], "audio": []})
 
         video_files = []
+        audio_files = []
         for file in os.listdir(VIDEOS_PATH):
             if file.lower().endswith(
                 (".mp4", ".mov", ".avi", ".mkv", ".webm", ".flv", ".wmv")
@@ -116,7 +141,7 @@ async def list_available_videos(
                     file_path = os.path.join(VIDEOS_PATH, file)
                     stat = os.stat(file_path)
 
-                    # Get file metadata
+                    # Get file metadata (creation, modification, access times)
                     metadata = {
                         "filename": file,
                         "size_bytes": stat.st_size,
@@ -136,8 +161,37 @@ async def list_available_videos(
                     }
                     video_files.append(metadata)
                 else:
-                    # Simple filename only
+                    # Simple filename only (no metadata)
                     video_files.append(file)
+            elif file.lower().endswith(
+                (".mp3", ".wav", ".aac", ".flac", ".ogg", ".m4a", ".wma")
+            ):
+                if include_metadata:
+                    file_path = os.path.join(VIDEOS_PATH, file)
+                    stat = os.stat(file_path)
+
+                    # Get file metadata (creation, modification, access times)
+                    metadata = {
+                        "filename": file,
+                        "size_bytes": stat.st_size,
+                        "size_mb": round(stat.st_size / (1024 * 1024), 2),
+                        "creation_time": datetime.fromtimestamp(
+                            stat.st_ctime
+                        ).isoformat(),
+                        "modification_time": datetime.fromtimestamp(
+                            stat.st_mtime
+                        ).isoformat(),
+                        "access_time": datetime.fromtimestamp(
+                            stat.st_atime
+                        ).isoformat(),
+                        "creation_timestamp": stat.st_ctime,
+                        "modification_timestamp": stat.st_mtime,
+                        "access_timestamp": stat.st_atime,
+                    }
+                    audio_files.append(metadata)
+                else:
+                    # Simple filename only (no metadata)
+                    audio_files.append(file)
 
         # Sort by a specified field if metadata is included
         if include_metadata and sort_by:
@@ -152,20 +206,24 @@ async def list_available_videos(
 
             reverse = sort_order.lower() == "desc"
             video_files.sort(key=lambda x: x[sort_by], reverse=reverse)
+            audio_files.sort(key=lambda x: x[sort_by], reverse=reverse)
 
         if include_metadata:
             return json.dumps(
                 {
                     "videos": video_files,
-                    "total_count": len(video_files),
+                    "audio": audio_files,
+                    "total_video_count": len(video_files),
+                    "total_audio_count": len(audio_files),
+                    "total_count": len(video_files) + len(audio_files),
                     "sorted_by": sort_by if sort_by else "None",
                     "sort_order": sort_order if sort_by else "None",
                 }
             )
         else:
-            return json.dumps({"videos": video_files})
+            return json.dumps({"videos": video_files, "audio": audio_files})
     except Exception as e:
-        return json.dumps({"error": f"Failed to list videos: {str(e)}"})
+        return json.dumps({"error": f"Failed to list media files: {str(e)}"})
 
 
 async def read_edit_script(script_file_name: str = "edit.sh") -> str:
@@ -192,7 +250,7 @@ async def modify_edit_script(
     try:
         script_path = f"{SCRIPTS_PATH}/{script_file_name}"
 
-        # Write the new script content
+        # Write the new script content to the script file
         with open(script_path, "w", encoding="utf-8") as f:
             f.write(script_content)
 
@@ -228,7 +286,7 @@ async def execute_edit_script(
         return json.dumps({"success": False, "error": f"{script_file_name} not found"})
 
     try:
-        # Build the command
+        # Build the command to execute the script
         cmd = ["bash", script_path] + input_files + [output_file]
 
         # Execute the command asynchronously

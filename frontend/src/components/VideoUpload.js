@@ -3,15 +3,29 @@ import apiService from "../services/api";
 import "./VideoUpload.css";
 
 // Constants
-const ALLOWED_TYPES = [
+const ALLOWED_VIDEO_TYPES = [
   "video/mp4",
   "video/avi",
   "video/mov",
   "video/mkv",
   "video/webm",
 ];
+const ALLOWED_AUDIO_TYPES = [
+  "audio/mp3",
+  "audio/wav",
+  "audio/aac",
+  "audio/flac",
+  "audio/ogg",
+  "audio/m4a",
+  "audio/wma",
+  "audio/mpeg",
+  "audio/x-m4a",
+  "audio/mp4",
+];
+const ALLOWED_TYPES = [...ALLOWED_VIDEO_TYPES, ...ALLOWED_AUDIO_TYPES];
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
-const SUPPORTED_FORMATS = "MP4, AVI, MOV, MKV, WebM";
+const SUPPORTED_FORMATS =
+  "MP4, AVI, MOV, MKV, WebM, MP3, WAV, AAC, FLAC, OGG, M4A, WMA";
 
 const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
   const [isDragOver, setIsDragOver] = useState(false);
@@ -24,7 +38,27 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
       throw new Error("No file selected.");
     }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    // Check both MIME type and file extension
+    const fileExtension = file.name.split(".").pop()?.toLowerCase();
+    const allowedExtensions = [
+      "mp4",
+      "avi",
+      "mov",
+      "mkv",
+      "webm",
+      "mp3",
+      "wav",
+      "aac",
+      "flac",
+      "ogg",
+      "m4a",
+      "wma",
+    ];
+
+    const isValidMimeType = ALLOWED_TYPES.includes(file.type);
+    const isValidExtension = allowedExtensions.includes(fileExtension);
+
+    if (!isValidMimeType && !isValidExtension) {
       throw new Error(
         `Unsupported file type. Please upload ${SUPPORTED_FORMATS} files.`
       );
@@ -83,7 +117,7 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
               [file.name]: { status: "uploading", progress: 0 },
             }));
 
-            const result = await apiService.uploadVideo(file);
+            const result = await apiService.uploadMedia(file);
             results.push(result);
 
             setUploadProgress((prev) => ({
@@ -168,7 +202,7 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
         {isUploading ? (
           <div className="upload-progress">
             <div className="loading-spinner"></div>
-            <p>Uploading {uploadQueue.length} video(s)...</p>
+            <p>Uploading {uploadQueue.length} media file(s)...</p>
             {uploadQueue.length > 0 && (
               <div className="upload-queue">
                 {uploadQueue.map((file, index) => (
@@ -209,8 +243,10 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
                 <polyline points="10,9 9,9 8,9" />
               </svg>
             </div>
-            <h3>Upload Videos</h3>
-            <p>Drag and drop your videos here, or click to browse</p>
+            <h3>Upload Media Files</h3>
+            <p>
+              Drag and drop your videos and audio files here, or click to browse
+            </p>
             <div className="file-types">
               <span>Supported: {SUPPORTED_FORMATS}</span>
             </div>
@@ -219,7 +255,7 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
             </div>
             <input
               type="file"
-              accept="video/*"
+              accept="video/*,audio/*,.mp4,.avi,.mov,.mkv,.webm,.mp3,.wav,.aac,.flac,.ogg,.m4a,.wma"
               multiple
               onChange={handleFileSelect}
               className="file-input"

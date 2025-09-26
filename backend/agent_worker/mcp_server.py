@@ -8,9 +8,9 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool
 from tools.tools import (
-    analyze_videos,
+    analyze_media_files,
     execute_edit_script,
-    list_available_videos,
+    list_available_media_files,
     modify_edit_script,
     read_edit_script,
 )
@@ -28,11 +28,11 @@ async def create_mcp_server():
     )
 
     tool_logic_registry = {
-        "analyze_videos": analyze_videos,
+        "analyze_media_files": analyze_media_files,
         "read_edit_script": read_edit_script,
         "modify_edit_script": modify_edit_script,
         "execute_edit_script": execute_edit_script,
-        "list_available_videos": list_available_videos,
+        "list_available_media_files": list_available_media_files,
     }
 
     async def run_tool(name: str, **kwargs):
@@ -52,26 +52,26 @@ async def create_mcp_server():
         """
         return [
             Tool(
-                name="analyze_videos",
-                description="Analyzes multiple video files (or one if only one is provided) with a multimodal AI model to understand their content. Provide a list of video filenames and a text prompt.",
+                name="analyze_media_files",
+                description="Analyzes multiple video and audio files (or one if only one is provided) with a multimodal AI model to understand their content. Provide a list of media filenames and a text prompt.",
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "video_filenames": {
+                        "media_filenames": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "A list of filenames of the videos to analyze (e.g., ['video1.mp4', 'video2.mp4']).",
+                            "description": "A list of filenames of the media files to analyze (e.g., ['video1.mp4', 'audio1.mp3']).",
                         },
                         "prompt": {
                             "type": "string",
-                            "description": "The text prompt for the analysis (e.g., 'Describe what is happening in these videos.').",
+                            "description": "The text prompt for the analysis (e.g., 'Describe what is happening in these media files.').",
                         },
                         "source_directory": {
                             "type": "string",
-                            "description": "The directory to get the videos from (default: 'videos'). Videos are stored in /app/storage/videos/.",
+                            "description": "The directory to get the media files from (default: 'videos'). Media files are stored in /app/storage/videos/.",
                         },
                     },
-                    "required": ["video_filenames", "prompt"],
+                    "required": ["media_filenames", "prompt"],
                 },
             ),
             Tool(
@@ -129,8 +129,8 @@ async def create_mcp_server():
                 },
             ),
             Tool(
-                name="list_available_videos",
-                description="Lists all video files available in the storage directory. Optionally includes metadata and sorts by a specified field.",
+                name="list_available_media_files",
+                description="Lists all video and audio files available in the storage directory. Optionally includes metadata and sorts by a specified field.",
                 inputSchema={
                     "type": "object",
                     "properties": {

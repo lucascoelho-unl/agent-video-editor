@@ -9,7 +9,7 @@ import os
 import docker
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
-from video_service import delete_video, list_videos, save_video
+from video_service import delete_media_file, list_media_files, save_media_file
 
 app = FastAPI()
 
@@ -37,25 +37,25 @@ async def health_check():
     return {"status": "healthy", "message": "API is running"}
 
 
-@app.get("/api/v1/videos")
-async def list_videos_endpoint():
+@app.get("/api/v1/media")
+async def list_media_endpoint():
     """
-    Endpoint to list all videos.
+    Endpoint to list all media files (videos and audio).
     """
     try:
-        result = list_videos()
+        result = list_media_files()
         return JSONResponse(status_code=200, content=result)
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
 @app.post("/api/v1/upload")
-async def upload_video_endpoint(file: UploadFile = File(...)):
+async def upload_media_endpoint(file: UploadFile = File(...)):
     """
-    Endpoint to upload a video.
+    Endpoint to upload a video or audio file.
     """
     try:
-        result = save_video(file)
+        result = save_media_file(file)
         return JSONResponse(status_code=201, content=result)
     except HTTPException:
         raise
@@ -63,13 +63,13 @@ async def upload_video_endpoint(file: UploadFile = File(...)):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
-@app.delete("/api/v1/videos/{filename}")
-async def delete_video_endpoint(filename: str, source: str = Query("videos")):
+@app.delete("/api/v1/media/{filename}")
+async def delete_media_endpoint(filename: str, source: str = Query("videos")):
     """
-    Endpoint to delete a video.
+    Endpoint to delete a video or audio file.
     """
     try:
-        result = delete_video(filename, source)
+        result = delete_media_file(filename, source)
         return JSONResponse(status_code=200, content=result)
     except HTTPException:
         raise
@@ -142,7 +142,7 @@ async def container_status_endpoint():
 @app.get("/api/v1/download/{filename}")
 async def download_video_endpoint(filename: str, source: str = Query("results")):
     """
-    Endpoint to download a video.
+    Endpoint to download a video or audio file.
     """
     try:
         # Map source to directory

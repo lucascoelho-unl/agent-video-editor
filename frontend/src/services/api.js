@@ -56,7 +56,7 @@ class ApiService {
     return response.json();
   }
 
-  async uploadVideo(file) {
+  async uploadMedia(file) {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -68,14 +68,14 @@ class ApiService {
     return this._handleResponse(response);
   }
 
-  async getVideos() {
-    const response = await fetch(`${API_BASE_URL}/videos`);
+  async getMedia() {
+    const response = await fetch(`${API_BASE_URL}/media`);
     return this._handleResponse(response);
   }
 
-  async deleteVideo(filename, source = "videos") {
+  async deleteMedia(filename, source = "videos") {
     const response = await fetch(
-      `${API_BASE_URL}/videos/${filename}?source=${source}`,
+      `${API_BASE_URL}/media/${filename}?source=${source}`,
       {
         method: "DELETE",
       }
