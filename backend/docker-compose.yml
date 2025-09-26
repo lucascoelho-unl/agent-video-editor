@@ -9,9 +9,20 @@ services:
       - "8002:8002"
     volumes:
       - ./api:/app
-      # Map the local storage folder to the container's storage folder
       - ./storage:/app/storage
     restart: unless-stopped
+
+  script-reset:
+    image: alpine:latest
+    volumes:
+      - ./storage:/app/storage
+    command: >
+      sh -c "
+        cp /app/storage/scripts/edit_template.sh /app/storage/scripts/edit.sh &&
+        chmod +x /app/storage/scripts/edit.sh &&
+        echo 'Script reset completed - edit.sh restored from template'
+      "
+    restart: "no"
 
   agent:
     build:
@@ -23,11 +34,12 @@ services:
       - "8000:8000"
     volumes:
       - ./agent_worker:/app
-      # Map the local storage folder to the container's storage folder
       - ./storage:/app/storage
     restart: unless-stopped
     environment:
       - PYTHONUNBUFFERED=1
+    depends_on:
+      - script-reset
     deploy:
       resources:
         limits:
