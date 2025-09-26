@@ -1,11 +1,14 @@
 import os
 
 from google.adk.agents import Agent
+from google.adk.artifacts import InMemoryArtifactService
 from google.adk.tools.mcp_tool.mcp_session_manager import StdioConnectionParams
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset
 from mcp import StdioServerParameters
 
 from .prompts import agent_description, agent_instruction
+
+artifact_service = InMemoryArtifactService()
 
 mcp_server_path = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "..", "mcp_server.py")

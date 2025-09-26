@@ -9,7 +9,8 @@ services:
       - "8002:8002"
     volumes:
       - ./api:/app
-      - video_storage:/app/storage
+      # Map the local storage folder to the container's storage folder
+      - ./storage:/app/storage
     restart: unless-stopped
 
   agent:
@@ -22,7 +23,8 @@ services:
       - "8000:8000"
     volumes:
       - ./agent_worker:/app
-      - video_storage:/app/storage
+      # Map the local storage folder to the container's storage folder
+      - ./storage:/app/storage
     restart: unless-stopped
     environment:
       - PYTHONUNBUFFERED=1
@@ -31,7 +33,3 @@ services:
         limits:
           cpus: '4.0'
           memory: 4G
-
-volumes:
-  video_storage:
-    driver: local
