@@ -2,12 +2,15 @@ import asyncio
 import json
 import logging
 import os
-import subprocess
-import time
 from datetime import datetime
 
 import dotenv
+import google.genai.types as types
 import google.generativeai as genai
+from agent.main import artifact_service
+
+SCRIPTS_PATH = "/app/storage/scripts"
+VIDEOS_PATH = "/app/storage/videos"
 
 dotenv.load_dotenv(dotenv_path="agent/.env")
 gemini_api_key = os.environ.get("GOOGLE_API_KEY")
@@ -15,9 +18,65 @@ if not gemini_api_key:
     raise ValueError("GEMINI_API_KEY not found in environment variables")
 genai.configure(api_key=gemini_api_key)
 
+
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
+
+
+async def save_videos_as_artifacts(
+    video_filenames: list[str],
+    source_directory: str = "videos",
+) -> str:
+    """
+    Reads multiple video files and saves them as versioned artifacts
+    using the provided ArtifactService.
+    """
+    results = {"success": [], "failed": []}
+
+    async def _save_one_artifact(filename: str):
+        """Helper function to process and save a single video file."""
+        video_path = f"/app/storage/{source_directory}/{filename}"
+        if not os.path.exists(video_path):
+            logging.error(f"Video file not found: {video_path}")
+            results["failed"].append({filename: "File not found"})
+            return
+
+        try:
+            # 1. Read the video file into bytes
+            logging.info(f"Reading video file: {video_path}")
+            with open(video_path, "rb") as f:
+                video_bytes = await asyncio.to_thread(f.read)
+
+            # 2. Create the artifact Part from the bytes
+            logging.info(f"Creating artifact for {filename}")
+            video_artifact = types.Part.from_bytes(
+                data=video_bytes, mime_type="video/mp4"
+            )
+
+            # 3. Save the artifact using the provided service
+            logging.info(f"Saving artifact: {filename}")
+            version = await artifact_service.save_artifact(
+                app_name="video_editor_agent",
+                user_id="1",
+                session_id="1",
+                filename=filename,  # Use the actual filename for the artifact
+                artifact=video_artifact,
+            )
+
+            logging.info(f"Successfully saved {filename} as version {version}.")
+            results["success"].append({filename: f"Saved as version {version}"})
+
+        except Exception as e:
+            logging.error(f"Failed to save artifact for {filename}: {e}")
+            results["failed"].append({filename: str(e)})
+
+    # --- SAVE ARTIFACTS CONCURRENTLY ---
+    save_tasks = [_save_one_artifact(fname) for fname in video_filenames]
+    await asyncio.gather(*save_tasks)
+
+    logging.info("Finished processing all video files.")
+    return json.dumps(results, indent=2)
 
 
 async def analyze_videos(
@@ -102,17 +161,16 @@ async def list_available_videos(
     Optionally includes metadata and sorts by a specified field.
     """
     try:
-        video_dir = "/app/storage/videos"
-        if not os.path.exists(video_dir):
+        if not os.path.exists(VIDEOS_PATH):
             return json.dumps({"videos": []})
 
         video_files = []
-        for file in os.listdir(video_dir):
+        for file in os.listdir(VIDEOS_PATH):
             if file.lower().endswith(
                 (".mp4", ".mov", ".avi", ".mkv", ".webm", ".flv", ".wmv")
             ):
                 if include_metadata:
-                    file_path = os.path.join(video_dir, file)
+                    file_path = os.path.join(VIDEOS_PATH, file)
                     stat = os.stat(file_path)
 
                     # Get file metadata
@@ -167,27 +225,29 @@ async def list_available_videos(
         return json.dumps({"error": f"Failed to list videos: {str(e)}"})
 
 
-async def read_edit_script() -> str:
+async def read_edit_script(script_file_name: str = "edit.sh") -> str:
     """
-    Reads the current content of the edit.sh script.
+    Reads the current content of the {script_file_name} script.
     """
     try:
-        script_path = "/app/edit.sh"
+        script_path = f"{SCRIPTS_PATH}/{script_file_name}"
         with open(script_path, "r") as f:
             content = f.read()
         return json.dumps({"script_content": content})
     except FileNotFoundError:
-        return json.dumps({"error": "edit.sh script not found"})
+        return json.dumps({"error": f"{script_file_name} script not found"})
     except Exception as e:
         return json.dumps({"error": f"Failed to read script: {str(e)}"})
 
 
-async def modify_edit_script(script_content: str) -> str:
+async def modify_edit_script(
+    script_content: str, script_file_name: str = "edit.sh"
+) -> str:
     """
-    Replace the entire edit.sh script with new content.
+    Replace the entire {script_file_name} script with new content.
     """
     try:
-        script_path = "/app/edit.sh"
+        script_path = f"{SCRIPTS_PATH}/{script_file_name}"
 
         # Write the new script content
         with open(script_path, "w", encoding="utf-8") as f:
@@ -198,27 +258,31 @@ async def modify_edit_script(script_content: str) -> str:
         return json.dumps(
             {
                 "success": True,
-                "message": f"edit.sh script updated successfully ({bytes_written} bytes written)",
+                "message": f"{script_file_name} script updated successfully ({bytes_written} bytes written)",
             }
         )
 
     except Exception as e:
-        return json.dumps({"error": f"Failed to update edit.sh script: {str(e)}"})
+        return json.dumps(
+            {"error": f"Failed to update {script_file_name} script: {str(e)}"}
+        )
 
 
 async def execute_edit_script(
-    input_files: list[str], output_file: str = "output.mp4"
+    input_files: list[str],
+    output_file: str = "/app/storage/videos/results/output.mp4",
+    script_file_name: str = "edit.sh",
 ) -> str:
     """
-    Executes the edit.sh script asynchronously with the specified files.
+    Executes the {script_file_name} script asynchronously with the specified files.
     The script is expected to take input files as arguments, followed by the output file.
     """
-    script_path = "/app/edit.sh"
+    script_path = f"{SCRIPTS_PATH}/{script_file_name}"
     # Note: The script should be made executable during deployment, not here.
-    # e.g., in a Dockerfile: RUN chmod +x /app/edit.sh
+    # e.g., in a Dockerfile: RUN chmod +x /app/{script_file_name}
 
     if not os.path.exists(script_path):
-        return json.dumps({"success": False, "error": "edit.sh not found"})
+        return json.dumps({"success": False, "error": f"{script_file_name} not found"})
 
     try:
         # Build the command
@@ -229,7 +293,7 @@ async def execute_edit_script(
             *cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
-            cwd="/app/storage/videos",
+            cwd=VIDEOS_PATH,
         )
 
         # Wait for the process to finish and capture the output

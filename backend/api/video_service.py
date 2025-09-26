@@ -7,6 +7,8 @@ from fastapi import HTTPException, UploadFile
 load_dotenv()
 
 STORAGE_PATH = os.getenv("STORAGE_PATH", "/app/storage/videos")
+RESULTS_PATH = os.path.join(STORAGE_PATH, "results")
+TEMP_PATH = os.path.join(STORAGE_PATH, "temp")
 ALLOWED_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv"}
 
 
@@ -40,8 +42,8 @@ def delete_video(filename: str, source: str = "videos"):
     # Map source to directory
     source_map = {
         "videos": STORAGE_PATH,
-        "results": "/app/storage/results",
-        "temp": "/app/storage/temp",
+        "results": RESULTS_PATH,
+        "temp": TEMP_PATH,
     }
 
     if source not in source_map:
@@ -61,7 +63,7 @@ def list_videos():
     """
     result = {"videos": [], "results": [], "temp": []}
 
-    # List videos
+    # List videos (excluding subdirectories)
     if os.path.exists(STORAGE_PATH):
         result["videos"] = [
             f
@@ -69,22 +71,20 @@ def list_videos():
             if os.path.isfile(os.path.join(STORAGE_PATH, f))
         ]
 
-    # List results
-    results_path = "/app/storage/results"
-    if os.path.exists(results_path):
+    # List results from videos/results directory
+    if os.path.exists(RESULTS_PATH):
         result["results"] = [
             f
-            for f in os.listdir(results_path)
-            if os.path.isfile(os.path.join(results_path, f))
+            for f in os.listdir(RESULTS_PATH)
+            if os.path.isfile(os.path.join(RESULTS_PATH, f))
         ]
 
-    # List temp files
-    temp_path = "/app/storage/temp"
-    if os.path.exists(temp_path):
+    # List temp files from videos/temp directory
+    if os.path.exists(TEMP_PATH):
         result["temp"] = [
             f
-            for f in os.listdir(temp_path)
-            if os.path.isfile(os.path.join(temp_path, f))
+            for f in os.listdir(TEMP_PATH)
+            if os.path.isfile(os.path.join(TEMP_PATH, f))
         ]
 
     return result

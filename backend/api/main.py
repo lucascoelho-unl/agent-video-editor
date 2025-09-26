@@ -7,7 +7,7 @@ Simple FastAPI server for uploading videos to Docker container
 import os
 
 import docker
-from fastapi import FastAPI, File, Query, UploadFile
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from video_service import delete_video, list_videos, save_video
 
@@ -57,6 +57,8 @@ async def upload_video_endpoint(file: UploadFile = File(...)):
     try:
         result = save_video(file)
         return JSONResponse(status_code=201, content=result)
+    except HTTPException:
+        raise
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -69,6 +71,8 @@ async def delete_video_endpoint(filename: str, source: str = Query("videos")):
     try:
         result = delete_video(filename, source)
         return JSONResponse(status_code=200, content=result)
+    except HTTPException:
+        raise
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
@@ -144,8 +148,8 @@ async def download_video_endpoint(filename: str, source: str = Query("results"))
         # Map source to directory
         source_map = {
             "videos": "/app/storage/videos",
-            "results": "/app/storage/results",
-            "temp": "/app/storage/temp",
+            "results": "/app/storage/videos/results",
+            "temp": "/app/storage/videos/temp",
         }
 
         if source not in source_map:

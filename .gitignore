@@ -412,3 +412,5 @@ volumes/
 *.bak
 *.backup
 *.old
+
+.cursor/
