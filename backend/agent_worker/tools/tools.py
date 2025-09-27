@@ -89,7 +89,7 @@ async def analyze_media_files(
 
         # Generate content with Gemini using all media files
         logging.info("Generating content with Gemini using all media files...")
-        model = genai.GenerativeModel(model_name="models/gemini-2.5-pro")
+        model = genai.GenerativeModel(model_name="gemini-2.5-pro")
 
         # Combine the prompt and the list of uploaded media files
         content_to_send = [prompt] + uploaded_files
