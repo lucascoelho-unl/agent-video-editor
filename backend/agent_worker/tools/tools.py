@@ -64,7 +64,7 @@ async def analyze_media_files(
             mime_type = mime_type_map.get(file_extension, "application/octet-stream")
 
             media_file = await asyncio.to_thread(
-                genai.upload_file, name=filename, path=media_path, mime_type=mime_type
+                genai.upload_file, display_name=filename, path=media_path, mime_type=mime_type
             )
 
             # Wait for the media file to be processed
