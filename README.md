@@ -18,7 +18,7 @@ cd backend:\
 inside docker:
 adk run agent
 
-- TODOOOO: Improve error handling on edit.sh script to catch all exceptions.
+TODO: Database
 
 - TODO: Add following agent specialized in analizing transcript context and organizing the merging order
 - TODO: Move video processing to when user clicks edit button.

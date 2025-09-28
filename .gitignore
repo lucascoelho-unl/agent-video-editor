@@ -213,6 +213,8 @@ __marimo__/
 
 .pylintrc
 
+backend/storage/videos/*
+
 # Logs
 logs
 *.log
