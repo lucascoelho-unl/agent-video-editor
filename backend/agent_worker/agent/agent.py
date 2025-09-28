@@ -1,18 +1,17 @@
+"""
+Defines the video editor agent.
+"""
+
 import os
 
 from google.adk.agents import Agent
-from google.adk.artifacts import InMemoryArtifactService
 from google.adk.tools.mcp_tool.mcp_session_manager import StdioConnectionParams
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset
 from mcp import StdioServerParameters
 
-from .prompts import agent_description, agent_instruction
+from .prompts import AGENT_DESCRIPTION, AGENT_INSTRUCTION
 
-artifact_service = InMemoryArtifactService()
-
-mcp_server_path = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "mcp_server.py")
-)
+mcp_server_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "mcp_server.py"))
 
 mcp_toolset = MCPToolset(
     connection_params=StdioConnectionParams(
@@ -27,7 +26,7 @@ mcp_toolset = MCPToolset(
 root_agent = Agent(
     name="video_editor_agent",
     model="gemini-2.5-pro",
-    description=(agent_description),
-    instruction=(agent_instruction),
+    description=(AGENT_DESCRIPTION),
+    instruction=(AGENT_INSTRUCTION),
     tools=[mcp_toolset],
 )

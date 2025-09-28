@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Main entry point for the Video Upload API
 Simple FastAPI server for uploading videos to Docker container
@@ -6,15 +5,12 @@ Simple FastAPI server for uploading videos to Docker container
 
 import os
 
-import docker
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from video_service import delete_media_file, list_media_files, save_media_file
 
 app = FastAPI()
-
-# Add CORS middleware for frontend
-from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
@@ -113,7 +109,10 @@ async def container_status_endpoint():
                     content={
                         "container_running": False,
                         "container_id": "agent",
-                        "message": "Agent container may not be running (no write access to shared storage)",
+                        "message": (
+                            "Agent container may not be running "
+                            "(no write access to shared storage)"
+                        ),
                         "container_name": "agent",
                     },
                 )

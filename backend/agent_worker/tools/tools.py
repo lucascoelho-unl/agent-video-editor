@@ -1,3 +1,7 @@
+"""
+Tools for media analysis and video editing.
+"""
+
 import asyncio
 import json
 import logging
@@ -6,13 +10,12 @@ from datetime import datetime
 
 import dotenv
 import google.generativeai as genai
+from google.api_core import exceptions
 
 SCRIPTS_PATH = "/app/storage/scripts"
 VIDEOS_PATH = "/app/storage/videos"
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Configure Gemini API
 dotenv.load_dotenv(dotenv_path="agent/.env")
@@ -37,10 +40,10 @@ async def analyze_media_files(
         async def _upload_and_process(filename):
             media_path = f"/app/storage/{source_directory}/{filename}"
             if not os.path.exists(media_path):
-                logging.error(f"Media file not found: {media_path}")
+                logging.error("Media file not found: %s", media_path)
                 return None
 
-            logging.info(f"Uploading {filename} to Gemini...")
+            logging.info("Uploading %s to Gemini...", filename)
 
             # Determine MIME type based on file extension
             file_extension = os.path.splitext(filename)[1].lower()
@@ -70,10 +73,10 @@ async def analyze_media_files(
                 media_file = await asyncio.to_thread(genai.get_file, media_file.name)
 
             if media_file.state.name == "FAILED":
-                logging.error(f"Processing failed for {filename}")
+                logging.error("Processing failed for %s", filename)
                 return None
 
-            logging.info(f"Successfully processed {filename}")
+            logging.info("Successfully processed %s", filename)
             return media_file
 
         # Create and run upload tasks in parallel
@@ -83,9 +86,7 @@ async def analyze_media_files(
         # Filter out any files that failed to upload/process
         uploaded_files = [res for res in results if res is not None]
         if not uploaded_files:
-            return json.dumps(
-                {"error": "All media file uploads failed or were not found."}
-            )
+            return json.dumps({"error": "All media file uploads failed or were not found."})
 
         # Generate content with Gemini using all media files
         logging.info("Generating content with Gemini using all media files...")
@@ -103,17 +104,15 @@ async def analyze_media_files(
         logging.info("Successfully analyzed media files with Gemini.")
         return json.dumps({"analysis": response.text})
 
-    except Exception as e:
-        logging.error(f"An error occurred during Gemini analysis: {e}")
+    except (OSError, ValueError, exceptions.GoogleAPICallError) as e:
+        logging.error("An error occurred during Gemini analysis: %s", e)
         return json.dumps({"error": str(e)})
 
     finally:
         # Delete all uploaded files
         if uploaded_files:
             logging.info("Deleting Gemini files...")
-            delete_tasks = [
-                asyncio.to_thread(genai.delete_file, f.name) for f in uploaded_files
-            ]
+            delete_tasks = [asyncio.to_thread(genai.delete_file, f.name) for f in uploaded_files]
             await asyncio.gather(*delete_tasks)
             logging.info("Successfully deleted all Gemini files.")
 
@@ -134,9 +133,7 @@ async def list_available_media_files(
         video_files = []
         audio_files = []
         for file in os.listdir(VIDEOS_PATH):
-            if file.lower().endswith(
-                (".mp4", ".mov", ".avi", ".mkv", ".webm", ".flv", ".wmv")
-            ):
+            if file.lower().endswith((".mp4", ".mov", ".avi", ".mkv", ".webm", ".flv", ".wmv")):
                 if include_metadata:
                     file_path = os.path.join(VIDEOS_PATH, file)
                     stat = os.stat(file_path)
@@ -146,15 +143,9 @@ async def list_available_media_files(
                         "filename": file,
                         "size_bytes": stat.st_size,
                         "size_mb": round(stat.st_size / (1024 * 1024), 2),
-                        "creation_time": datetime.fromtimestamp(
-                            stat.st_ctime
-                        ).isoformat(),
-                        "modification_time": datetime.fromtimestamp(
-                            stat.st_mtime
-                        ).isoformat(),
-                        "access_time": datetime.fromtimestamp(
-                            stat.st_atime
-                        ).isoformat(),
+                        "creation_time": datetime.fromtimestamp(stat.st_ctime).isoformat(),
+                        "modification_time": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                        "access_time": datetime.fromtimestamp(stat.st_atime).isoformat(),
                         "creation_timestamp": stat.st_ctime,
                         "modification_timestamp": stat.st_mtime,
                         "access_timestamp": stat.st_atime,
@@ -163,9 +154,7 @@ async def list_available_media_files(
                 else:
                     # Simple filename only (no metadata)
                     video_files.append(file)
-            elif file.lower().endswith(
-                (".mp3", ".wav", ".aac", ".flac", ".ogg", ".m4a", ".wma")
-            ):
+            elif file.lower().endswith((".mp3", ".wav", ".aac", ".flac", ".ogg", ".m4a", ".wma")):
                 if include_metadata:
                     file_path = os.path.join(VIDEOS_PATH, file)
                     stat = os.stat(file_path)
@@ -175,15 +164,9 @@ async def list_available_media_files(
                         "filename": file,
                         "size_bytes": stat.st_size,
                         "size_mb": round(stat.st_size / (1024 * 1024), 2),
-                        "creation_time": datetime.fromtimestamp(
-                            stat.st_ctime
-                        ).isoformat(),
-                        "modification_time": datetime.fromtimestamp(
-                            stat.st_mtime
-                        ).isoformat(),
-                        "access_time": datetime.fromtimestamp(
-                            stat.st_atime
-                        ).isoformat(),
+                        "creation_time": datetime.fromtimestamp(stat.st_ctime).isoformat(),
+                        "modification_time": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                        "access_time": datetime.fromtimestamp(stat.st_atime).isoformat(),
                         "creation_timestamp": stat.st_ctime,
                         "modification_timestamp": stat.st_mtime,
                         "access_timestamp": stat.st_atime,
@@ -222,7 +205,7 @@ async def list_available_media_files(
             )
         else:
             return json.dumps({"videos": video_files, "audio": audio_files})
-    except Exception as e:
+    except OSError as e:
         return json.dumps({"error": f"Failed to list media files: {str(e)}"})
 
 
@@ -232,18 +215,16 @@ async def read_edit_script(script_file_name: str = "edit.sh") -> str:
     """
     try:
         script_path = f"{SCRIPTS_PATH}/{script_file_name}"
-        with open(script_path, "r") as f:
+        with open(script_path, "r", encoding="utf-8") as f:
             content = f.read()
         return json.dumps({"script_content": content})
     except FileNotFoundError:
         return json.dumps({"error": f"{script_file_name} script not found"})
-    except Exception as e:
+    except OSError as e:
         return json.dumps({"error": f"Failed to read script: {str(e)}"})
 
 
-async def modify_edit_script(
-    script_content: str, script_file_name: str = "edit.sh"
-) -> str:
+async def modify_edit_script(script_content: str, script_file_name: str = "edit.sh") -> str:
     """
     Replace the entire {script_file_name} script with new content.
     """
@@ -263,10 +244,8 @@ async def modify_edit_script(
             }
         )
 
-    except Exception as e:
-        return json.dumps(
-            {"error": f"Failed to update {script_file_name} script: {str(e)}"}
-        )
+    except OSError as e:
+        return json.dumps({"error": f"Failed to update {script_file_name} script: {str(e)}"})
 
 
 async def execute_edit_script(
@@ -308,7 +287,5 @@ async def execute_edit_script(
             return json.dumps(
                 {"success": False, "error": stderr.decode(), "stdout": stdout.decode()}
             )
-    except Exception as e:
-        return json.dumps(
-            {"success": False, "error": f"Failed to execute script: {str(e)}"}
-        )
+    except (OSError, ValueError) as e:
+        return json.dumps({"success": False, "error": f"Failed to execute script: {str(e)}"})

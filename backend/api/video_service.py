@@ -1,3 +1,7 @@
+"""
+Service for handling video and audio file operations.
+"""
+
 import os
 import shutil
 
@@ -27,9 +31,7 @@ def save_media_file(file: UploadFile):
 
     file_path = os.path.join(STORAGE_PATH, file.filename)
     if os.path.exists(file_path):
-        raise HTTPException(
-            status_code=409, detail="File with the same name already exists"
-        )
+        raise HTTPException(status_code=409, detail="File with the same name already exists")
 
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
@@ -69,9 +71,7 @@ def list_media_files():
     # List media files (excluding subdirectories)
     if os.path.exists(STORAGE_PATH):
         all_files = [
-            f
-            for f in os.listdir(STORAGE_PATH)
-            if os.path.isfile(os.path.join(STORAGE_PATH, f))
+            f for f in os.listdir(STORAGE_PATH) if os.path.isfile(os.path.join(STORAGE_PATH, f))
         ]
 
         # Separate video and audio files
@@ -85,17 +85,13 @@ def list_media_files():
     # List results from videos/results directory
     if os.path.exists(RESULTS_PATH):
         result["results"] = [
-            f
-            for f in os.listdir(RESULTS_PATH)
-            if os.path.isfile(os.path.join(RESULTS_PATH, f))
+            f for f in os.listdir(RESULTS_PATH) if os.path.isfile(os.path.join(RESULTS_PATH, f))
         ]
 
     # List temp files from videos/temp directory
     if os.path.exists(TEMP_PATH):
         result["temp"] = [
-            f
-            for f in os.listdir(TEMP_PATH)
-            if os.path.isfile(os.path.join(TEMP_PATH, f))
+            f for f in os.listdir(TEMP_PATH) if os.path.isfile(os.path.join(TEMP_PATH, f))
         ]
 
     return result

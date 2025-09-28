@@ -1,3 +1,7 @@
+"""
+MCP server for the video editor agent.
+"""
+
 import asyncio
 import json
 import logging
@@ -15,9 +19,7 @@ from tools.tools import (
     read_edit_script,
 )
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 async def create_mcp_server():
@@ -41,8 +43,8 @@ async def create_mcp_server():
                 return await tool_logic_registry[name](**kwargs)
             else:
                 return tool_logic_registry[name](**kwargs)
-        except Exception as e:
-            logging.error(f"Error running tool {name}: {e}")
+        except (KeyError, TypeError) as e:
+            logging.error("Error running tool %s: %s", name, e)
             return json.dumps({"error": str(e)})
 
     @server.list_tools()
@@ -53,22 +55,36 @@ async def create_mcp_server():
         return [
             Tool(
                 name="analyze_media_files",
-                description="Analyzes multiple video and audio files (or one if only one is provided) with a multimodal AI model to understand their content. Provide a list of media filenames and a text prompt.",
+                description=(
+                    "Analyzes multiple video and audio files (or one if only one is "
+                    "provided) with a multimodal AI model to understand their content. "
+                    "Provide a list of media filenames and a text prompt."
+                ),
                 inputSchema={
                     "type": "object",
                     "properties": {
                         "media_filenames": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "A list of filenames of the media files to analyze (e.g., ['video1.mp4', 'audio1.mp3']).",
+                            "description": (
+                                "A list of filenames of the media files to analyze "
+                                "(e.g., ['video1.mp4', 'audio1.mp3'])."
+                            ),
                         },
                         "prompt": {
                             "type": "string",
-                            "description": "The text prompt for the analysis (e.g., 'Describe what is happening in these media files.').",
+                            "description": (
+                                "The text prompt for the analysis (e.g., 'Describe "
+                                "what is happening in these media files.')."
+                            ),
                         },
                         "source_directory": {
                             "type": "string",
-                            "description": "The directory to get the media files from (default: 'videos'). Media files are stored in /app/storage/videos/.",
+                            "description": (
+                                "The directory to get the media files from (default: "
+                                "'videos'). Media files are stored in "
+                                "/app/storage/videos/."
+                            ),
                         },
                     },
                     "required": ["media_filenames", "prompt"],
@@ -76,20 +92,30 @@ async def create_mcp_server():
             ),
             Tool(
                 name="read_edit_script",
-                description="Reads the current content of a script file that can be modified for video editing. Defaults to edit.sh but can specify any script filename.",
+                description=(
+                    "Reads the current content of a script file that can be "
+                    "modified for video editing. Defaults to edit.sh but can "
+                    "specify any script filename."
+                ),
                 inputSchema={
                     "type": "object",
                     "properties": {
                         "script_file_name": {
                             "type": "string",
-                            "description": "The name of the script file to read (default: 'edit.sh').",
+                            "description": (
+                                "The name of the script file to read (default: " "'edit.sh')."
+                            ),
                         },
                     },
                 },
             ),
             Tool(
                 name="modify_edit_script",
-                description="Replace the entire content of a script file with new content. Use this to modify scripts for different video editing tasks. Defaults to edit.sh but can specify any script filename.",
+                description=(
+                    "Replace the entire content of a script file with new content. "
+                    "Use this to modify scripts for different video editing tasks. "
+                    "Defaults to edit.sh but can specify any script filename."
+                ),
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -99,7 +125,9 @@ async def create_mcp_server():
                         },
                         "script_file_name": {
                             "type": "string",
-                            "description": "The name of the script file to modify (default: 'edit.sh').",
+                            "description": (
+                                "The name of the script file to modify (default: " "'edit.sh')."
+                            ),
                         },
                     },
                     "required": ["script_content"],
@@ -107,7 +135,11 @@ async def create_mcp_server():
             ),
             Tool(
                 name="execute_edit_script",
-                description="Executes a script file with specified input video files and output file. Defaults to edit.sh but can specify any script filename.",
+                description=(
+                    "Executes a script file with specified input video files and "
+                    "output file. Defaults to edit.sh but can specify any script "
+                    "filename."
+                ),
                 inputSchema={
                     "type": "object",
                     "properties": {
@@ -118,11 +150,16 @@ async def create_mcp_server():
                         },
                         "output_file": {
                             "type": "string",
-                            "description": "Output file path (default: '/app/storage/videos/results/output.mp4').",
+                            "description": (
+                                "Output file path (default: "
+                                "'/app/storage/videos/results/output.mp4')."
+                            ),
                         },
                         "script_file_name": {
                             "type": "string",
-                            "description": "The name of the script file to execute (default: 'edit.sh').",
+                            "description": (
+                                "The name of the script file to execute (default: " "'edit.sh')."
+                            ),
                         },
                     },
                     "required": ["input_files"],
@@ -130,17 +167,30 @@ async def create_mcp_server():
             ),
             Tool(
                 name="list_available_media_files",
-                description="Lists all video and audio files available in the storage directory. Optionally includes metadata and sorts by a specified field.",
+                description=(
+                    "Lists all video and audio files available in the storage "
+                    "directory. Optionally includes metadata and sorts by a "
+                    "specified field."
+                ),
                 inputSchema={
                     "type": "object",
                     "properties": {
                         "include_metadata": {
                             "type": "boolean",
-                            "description": "Whether to include detailed metadata (creation time, file size, etc.). Defaults to False.",
+                            "description": (
+                                "Whether to include detailed metadata (creation time, "
+                                "file size, etc.). Defaults to False."
+                            ),
                         },
                         "sort_by": {
                             "type": "string",
-                            "description": "The metadata field to sort by. Valid fields are 'filename', 'size_bytes', 'creation_timestamp', 'modification_timestamp', 'access_timestamp'. Defaults to 'creation_timestamp'. Only applies when include_metadata is True.",
+                            "description": (
+                                "The metadata field to sort by. Valid fields are "
+                                "'filename', 'size_bytes', 'creation_timestamp', "
+                                "'modification_timestamp', 'access_timestamp'. "
+                                "Defaults to 'creation_timestamp'. Only applies when "
+                                "include_metadata is True."
+                            ),
                             "enum": [
                                 "filename",
                                 "size_bytes",
@@ -151,7 +201,11 @@ async def create_mcp_server():
                         },
                         "sort_order": {
                             "type": "string",
-                            "description": "The sort order. Valid values are 'asc' (ascending) and 'desc' (descending). Defaults to 'desc'. Only applies when include_metadata is True.",
+                            "description": (
+                                "The sort order. Valid values are 'asc' (ascending) "
+                                "and 'desc' (descending). Defaults to 'desc'. Only "
+                                "applies when include_metadata is True."
+                            ),
                             "enum": ["asc", "desc"],
                         },
                     },
@@ -176,8 +230,8 @@ async def create_mcp_server():
                 ]
             }
         else:
-            logging.error(f"Unknown tool called: {name}")
-            raise Exception(f"Unknown tool called: {name}")
+            logging.error("Unknown tool called: %s", name)
+            raise ValueError(f"Unknown tool called: {name}")
 
     return server
 
@@ -187,11 +241,9 @@ async def main():
     try:
         server = await create_mcp_server()
         async with stdio_server() as (read_stream, write_stream):
-            await server.run(
-                read_stream, write_stream, server.create_initialization_options()
-            )
-    except Exception as e:
-        logging.error("Failed to start MCP server.", exc_info=True)
+            await server.run(read_stream, write_stream, server.create_initialization_options())
+    except (asyncio.CancelledError, ConnectionError) as e:
+        logging.error("Failed to start MCP server: %s", e, exc_info=True)
         sys.exit(1)
 
 
