@@ -5,7 +5,7 @@ Simple FastAPI server for uploading videos to Docker container
 
 import os
 
-from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi import FastAPI, File, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from video_service import delete_media_file, list_media_files, save_media_file
@@ -41,7 +41,7 @@ async def list_media_endpoint():
     try:
         result = list_media_files()
         return JSONResponse(status_code=200, content=result)
-    except Exception as e:
+    except OSError as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
@@ -53,9 +53,7 @@ async def upload_media_endpoint(file: UploadFile = File(...)):
     try:
         result = save_media_file(file)
         return JSONResponse(status_code=201, content=result)
-    except HTTPException:
-        raise
-    except Exception as e:
+    except OSError as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
@@ -67,9 +65,7 @@ async def delete_media_endpoint(filename: str, source: str = Query("videos")):
     try:
         result = delete_media_file(filename, source)
         return JSONResponse(status_code=200, content=result)
-    except HTTPException:
-        raise
-    except Exception as e:
+    except OSError as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
@@ -90,7 +86,7 @@ async def container_status_endpoint():
             # Try to create a simple test file to verify write access
             test_file = os.path.join(shared_storage_path, ".api_health_check")
             try:
-                with open(test_file, "w") as f:
+                with open(test_file, "w", encoding="utf-8") as f:
                     f.write("api_health_check")
                 os.remove(test_file)
 
@@ -103,7 +99,7 @@ async def container_status_endpoint():
                         "container_name": "agent",
                     },
                 )
-            except Exception:
+            except OSError:
                 return JSONResponse(
                     status_code=200,
                     content={
@@ -127,7 +123,7 @@ async def container_status_endpoint():
                 },
             )
 
-    except Exception as e:
+    except OSError as e:
         return JSONResponse(
             status_code=500,
             content={
@@ -160,5 +156,5 @@ async def download_video_endpoint(filename: str, source: str = Query("results"))
             return JSONResponse(status_code=404, content={"error": "File not found"})
 
         return FileResponse(file_path, filename=filename)
-    except Exception as e:
+    except OSError as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
