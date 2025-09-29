@@ -3,12 +3,20 @@ Main entry point for the Video Upload API
 Simple FastAPI server for uploading videos to Docker container
 """
 
-import os
+import io
 
 from fastapi import FastAPI, File, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
-from video_service import delete_media_file, list_media_files, save_media_file
+from fastapi.responses import JSONResponse, StreamingResponse
+from minio.error import S3Error
+from minio_service import (
+    delete_media_file,
+    get_file_url,
+    get_media_file,
+    list_media_files,
+    minio_client,
+    save_media_file,
+)
 
 app = FastAPI()
 
@@ -38,11 +46,8 @@ async def list_media_endpoint():
     """
     Endpoint to list all media files (videos and audio).
     """
-    try:
-        result = list_media_files()
-        return JSONResponse(status_code=200, content=result)
-    except OSError as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+    result = list_media_files()
+    return JSONResponse(status_code=200, content=result)
 
 
 @app.post("/api/v1/upload")
@@ -50,11 +55,8 @@ async def upload_media_endpoint(file: UploadFile = File(...)):
     """
     Endpoint to upload a video or audio file.
     """
-    try:
-        result = save_media_file(file)
-        return JSONResponse(status_code=201, content=result)
-    except OSError as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+    result = save_media_file(file)
+    return JSONResponse(status_code=201, content=result)
 
 
 @app.delete("/api/v1/media/{filename}")
@@ -62,74 +64,38 @@ async def delete_media_endpoint(filename: str, source: str = Query("videos")):
     """
     Endpoint to delete a video or audio file.
     """
-    try:
-        result = delete_media_file(filename, source)
-        return JSONResponse(status_code=200, content=result)
-    except OSError as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+    result = delete_media_file(filename, source)
+    return JSONResponse(status_code=200, content=result)
 
 
 @app.get("/api/v1/container/status")
 async def container_status_endpoint():
     """
-    Endpoint to get container status.
+    Endpoint to get container status by checking MinIO connectivity.
     """
     try:
-        # Check if the agent container is running by looking for a shared volume
-        # Since both containers share the video_storage volume, we can check if
-        # the agent has written any status files or if the shared storage is accessible
+        # Try to list buckets to verify MinIO connectivity
+        minio_client.list_buckets()
 
-        shared_storage_path = "/app/storage"
-
-        # Check if shared storage is accessible (indicates containers are running)
-        if os.path.exists(shared_storage_path):
-            # Try to create a simple test file to verify write access
-            test_file = os.path.join(shared_storage_path, ".api_health_check")
-            try:
-                with open(test_file, "w", encoding="utf-8") as f:
-                    f.write("api_health_check")
-                os.remove(test_file)
-
-                return JSONResponse(
-                    status_code=200,
-                    content={
-                        "container_running": True,
-                        "container_id": "agent",
-                        "message": "Agent container is running (shared storage accessible)",
-                        "container_name": "agent",
-                    },
-                )
-            except OSError:
-                return JSONResponse(
-                    status_code=200,
-                    content={
-                        "container_running": False,
-                        "container_id": "agent",
-                        "message": (
-                            "Agent container may not be running "
-                            "(no write access to shared storage)"
-                        ),
-                        "container_name": "agent",
-                    },
-                )
-        else:
-            return JSONResponse(
-                status_code=200,
-                content={
-                    "container_running": False,
-                    "container_id": "agent",
-                    "message": "Agent container is not running (shared storage not accessible)",
-                    "container_name": "agent",
-                },
-            )
-
-    except OSError as e:
         return JSONResponse(
-            status_code=500,
+            status_code=200,
+            content={
+                "container_running": True,
+                "container_id": "agent",
+                "message": "Agent container is running (MinIO storage accessible)",
+                "container_name": "agent",
+                "storage_type": "MinIO",
+            },
+        )
+    except S3Error as minio_error:
+        return JSONResponse(
+            status_code=200,
             content={
                 "container_running": False,
-                "container_id": None,
-                "message": f"Error checking container status: {str(e)}",
+                "container_id": "agent",
+                "message": f"Agent container may not be running (MinIO not accessible: {str(minio_error)})",
+                "container_name": "agent",
+                "storage_type": "MinIO",
             },
         )
 
@@ -137,24 +103,40 @@ async def container_status_endpoint():
 @app.get("/api/v1/download/{filename}")
 async def download_video_endpoint(filename: str, source: str = Query("results")):
     """
-    Endpoint to download a video or audio file.
+    Endpoint to download a video or audio file from MinIO storage.
     """
-    try:
-        # Map source to directory
-        source_map = {
-            "videos": "/app/storage/videos",
-            "results": "/app/storage/videos/results",
-            "temp": "/app/storage/videos/temp",
-        }
+    file_data = get_media_file(filename, source)
 
-        if source not in source_map:
-            return JSONResponse(status_code=400, content={"error": "Invalid source"})
+    # Determine content type based on file extension
+    file_extension = filename.lower().split(".")[-1]
+    content_type_map = {
+        "mp4": "video/mp4",
+        "mov": "video/quicktime",
+        "avi": "video/x-msvideo",
+        "mkv": "video/x-matroska",
+        "webm": "video/webm",
+        "mp3": "audio/mpeg",
+        "wav": "audio/wav",
+        "aac": "audio/aac",
+        "flac": "audio/flac",
+        "ogg": "audio/ogg",
+        "m4a": "audio/mp4",
+    }
+    content_type = content_type_map.get(file_extension, "application/octet-stream")
 
-        file_path = os.path.join(source_map[source], filename)
+    return StreamingResponse(
+        io.BytesIO(file_data),
+        media_type=content_type,
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
 
-        if not os.path.exists(file_path):
-            return JSONResponse(status_code=404, content={"error": "File not found"})
 
-        return FileResponse(file_path, filename=filename)
-    except OSError as e:
-        return JSONResponse(status_code=500, content={"error": str(e)})
+@app.get("/api/v1/media/{filename}/url")
+async def get_media_url_endpoint(
+    filename: str, source: str = Query("results"), expires: int = Query(3600)
+):
+    """
+    Endpoint to get a presigned URL for downloading a media file.
+    """
+    url = get_file_url(filename, source, expires)
+    return JSONResponse(status_code=200, content={"url": url, "expires_in_seconds": expires})

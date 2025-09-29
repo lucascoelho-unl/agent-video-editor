@@ -6,14 +6,24 @@ import asyncio
 import json
 import logging
 import os
-from datetime import datetime
+import re
+import tempfile
+import uuid
 
 import dotenv
 import google.generativeai as genai
 from google.api_core import exceptions
 
-SCRIPTS_PATH = "/app/storage/scripts"
-VIDEOS_PATH = "/app/storage/videos"
+# Import MinIO service
+from .minio_service import (
+    MinioServiceError,
+    download_file_to_temp,
+    file_exists,
+    get_file_info,
+    list_files_in_directory,
+    upload_file_from_bytes,
+    upload_file_from_path,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
@@ -35,13 +45,24 @@ async def analyze_media_files(
 
     # Upload and process media files concurrently
     uploaded_files = []
+    temp_files = []  # Track temporary files for cleanup
+    not_found_files = []
     try:
 
         async def _upload_and_process(filename):
-            media_path = f"/app/storage/{source_directory}/{filename}"
-            if not os.path.exists(media_path):
-                logging.error("Media file not found: %s", media_path)
+            object_name = f"{source_directory}/{filename}"
+
+            # Check if file exists in MinIO
+            if not file_exists(object_name):
+                logging.warning("Media file not found in MinIO: %s", object_name)
+                not_found_files.append(filename)
                 return None
+
+            logging.info("Downloading %s from MinIO...", filename)
+
+            # Download file to temporary location
+            temp_path = await asyncio.to_thread(download_file_to_temp, object_name)
+            temp_files.append(temp_path)  # Track for cleanup
 
             logging.info("Uploading %s to Gemini...", filename)
 
@@ -63,8 +84,24 @@ async def analyze_media_files(
             }
             mime_type = mime_type_map.get(file_extension, "application/octet-stream")
 
+            # Sanitize the filename to create a valid resource name that consists of
+            # only lowercase alphanumeric characters and dashes.
+            base_filename, _ = os.path.splitext(filename)
+            sanitized_base = re.sub(r"[^a-z0-9-]+", "-", base_filename.lower().strip()).strip("-")
+
+            # If the sanitized base is empty (e.g., filename was only symbols), create a unique name.
+            if not sanitized_base:
+                sanitized_base = f"media-{uuid.uuid4()}"
+                logging.warning(
+                    "Sanitized base is empty, creating a unique name: %s", sanitized_base
+                )
+
             media_file = await asyncio.to_thread(
-                genai.upload_file, display_name=filename, path=media_path, mime_type=mime_type
+                genai.upload_file,
+                name=sanitized_base,
+                display_name=filename,
+                path=temp_path,
+                mime_type=mime_type,
             )
 
             # Wait for the media file to be processed
@@ -86,7 +123,15 @@ async def analyze_media_files(
         # Filter out any files that failed to upload/process
         uploaded_files = [res for res in results if res is not None]
         if not uploaded_files:
-            return json.dumps({"error": "All media file uploads failed or were not found."})
+            if not_found_files:
+                return json.dumps(
+                    {
+                        "analysis": f"Analysis could not be performed because the following files were not found: {', '.join(not_found_files)}."
+                    }
+                )
+            return json.dumps(
+                {"analysis": "Analysis could not be performed because no files could be processed."}
+            )
 
         # Generate content with Gemini using all media files
         logging.info("Generating content with Gemini using all media files...")
@@ -109,12 +154,19 @@ async def analyze_media_files(
         return json.dumps({"error": str(e)})
 
     finally:
-        # Delete all uploaded files
+        # Delete all uploaded files from Gemini
         if uploaded_files:
             logging.info("Deleting Gemini files...")
             delete_tasks = [asyncio.to_thread(genai.delete_file, f.name) for f in uploaded_files]
             await asyncio.gather(*delete_tasks)
             logging.info("Successfully deleted all Gemini files.")
+
+        # Clean up temporary files
+        for temp_file in temp_files:
+            try:
+                os.unlink(temp_file)
+            except OSError:
+                pass
 
 
 async def list_available_media_files(
@@ -123,69 +175,75 @@ async def list_available_media_files(
     sort_order: str = "desc",
 ) -> str:
     """
-    Lists all video and audio files available in the storage directory.
+    Lists all video and audio files available in MinIO storage.
     Optionally includes metadata and sorts by a specified field.
     """
     try:
-        if not os.path.exists(VIDEOS_PATH):
-            return json.dumps({"videos": [], "audio": []})
+        # Get all files from MinIO videos directory
+        all_files = list_files_in_directory("videos")
+        all_files.extend(list_files_in_directory("results"))
+        all_files.extend(list_files_in_directory("temp"))
 
         video_files = []
         audio_files = []
-        for file in os.listdir(VIDEOS_PATH):
-            if file.lower().endswith((".mp4", ".mov", ".avi", ".mkv", ".webm", ".flv", ".wmv")):
-                if include_metadata:
-                    file_path = os.path.join(VIDEOS_PATH, file)
-                    stat = os.stat(file_path)
 
-                    # Get file metadata (creation, modification, access times)
-                    metadata = {
-                        "filename": file,
-                        "size_bytes": stat.st_size,
-                        "size_mb": round(stat.st_size / (1024 * 1024), 2),
-                        "creation_time": datetime.fromtimestamp(stat.st_ctime).isoformat(),
-                        "modification_time": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-                        "access_time": datetime.fromtimestamp(stat.st_atime).isoformat(),
-                        "creation_timestamp": stat.st_ctime,
-                        "modification_timestamp": stat.st_mtime,
-                        "access_timestamp": stat.st_atime,
-                    }
-                    video_files.append(metadata)
+        for filename in all_files:
+            if filename.lower().endswith((".mp4", ".mov", ".avi", ".mkv", ".webm", ".flv", ".wmv")):
+                if include_metadata:
+                    try:
+                        # Get file info from MinIO
+                        object_name = f"videos/{filename}"
+                        file_info = await asyncio.to_thread(get_file_info, object_name)
+
+                        metadata = {
+                            "filename": filename,
+                            "size_bytes": file_info["size"],
+                            "size_mb": round(file_info["size"] / (1024 * 1024), 2),
+                            "last_modified": file_info["last_modified"].isoformat(),
+                            "content_type": file_info["content_type"],
+                            "etag": file_info["etag"],
+                        }
+                        video_files.append(metadata)
+                    except MinioServiceError as e:
+                        logging.warning("Could not get metadata for %s: %s", filename, e)
+                        video_files.append(filename)
                 else:
                     # Simple filename only (no metadata)
-                    video_files.append(file)
-            elif file.lower().endswith((".mp3", ".wav", ".aac", ".flac", ".ogg", ".m4a", ".wma")):
+                    video_files.append(filename)
+            elif filename.lower().endswith(
+                (".mp3", ".wav", ".aac", ".flac", ".ogg", ".m4a", ".wma")
+            ):
                 if include_metadata:
-                    file_path = os.path.join(VIDEOS_PATH, file)
-                    stat = os.stat(file_path)
+                    try:
+                        # Get file info from MinIO
+                        object_name = f"videos/{filename}"
+                        file_info = await asyncio.to_thread(get_file_info, object_name)
 
-                    # Get file metadata (creation, modification, access times)
-                    metadata = {
-                        "filename": file,
-                        "size_bytes": stat.st_size,
-                        "size_mb": round(stat.st_size / (1024 * 1024), 2),
-                        "creation_time": datetime.fromtimestamp(stat.st_ctime).isoformat(),
-                        "modification_time": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-                        "access_time": datetime.fromtimestamp(stat.st_atime).isoformat(),
-                        "creation_timestamp": stat.st_ctime,
-                        "modification_timestamp": stat.st_mtime,
-                        "access_timestamp": stat.st_atime,
-                    }
-                    audio_files.append(metadata)
+                        metadata = {
+                            "filename": filename,
+                            "size_bytes": file_info["size"],
+                            "size_mb": round(file_info["size"] / (1024 * 1024), 2),
+                            "last_modified": file_info["last_modified"].isoformat(),
+                            "content_type": file_info["content_type"],
+                            "etag": file_info["etag"],
+                        }
+                        audio_files.append(metadata)
+                    except MinioServiceError as e:
+                        logging.warning("Could not get metadata for %s: %s", filename, e)
+                        audio_files.append(filename)
                 else:
                     # Simple filename only (no metadata)
-                    audio_files.append(file)
+                    audio_files.append(filename)
 
         # Sort by a specified field if metadata is included
         if include_metadata and sort_by:
-            if sort_by not in [
-                "filename",
-                "size_bytes",
-                "creation_timestamp",
-                "modification_timestamp",
-                "access_timestamp",
-            ]:
-                return json.dumps({"error": f"Invalid sort_by field: {sort_by}"})
+            valid_sort_fields = ["filename", "size_bytes", "last_modified"]
+            if sort_by not in valid_sort_fields:
+                return json.dumps(
+                    {
+                        "error": f"Invalid sort_by field: {sort_by}. Valid fields: {valid_sort_fields}"
+                    }
+                )
 
             reverse = sort_order.lower() == "desc"
             video_files.sort(key=lambda x: x[sort_by], reverse=reverse)
@@ -205,35 +263,46 @@ async def list_available_media_files(
             )
         else:
             return json.dumps({"videos": video_files, "audio": audio_files})
-    except OSError as e:
+    except MinioServiceError as e:
         return json.dumps({"error": f"Failed to list media files: {str(e)}"})
 
 
 async def read_edit_script(script_file_name: str = "edit.sh") -> str:
     """
-    Reads the current content of the {script_file_name} script.
+    Reads the current content of the {script_file_name} script from MinIO.
     """
     try:
-        script_path = f"{SCRIPTS_PATH}/{script_file_name}"
-        with open(script_path, "r", encoding="utf-8") as f:
-            content = f.read()
-        return json.dumps({"script_content": content})
-    except FileNotFoundError:
-        return json.dumps({"error": f"{script_file_name} script not found"})
-    except OSError as e:
+        object_name = f"scripts/{script_file_name}"
+
+        # Download script to temporary file
+        temp_path = await asyncio.to_thread(download_file_to_temp, object_name)
+
+        try:
+            with open(temp_path, "r", encoding="utf-8") as f:
+                content = f.read()
+            return json.dumps({"script_content": content})
+        finally:
+            # Clean up temporary file
+            try:
+                os.unlink(temp_path)
+            except OSError:
+                pass
+
+    except (MinioServiceError, OSError) as e:
         return json.dumps({"error": f"Failed to read script: {str(e)}"})
 
 
 async def modify_edit_script(script_content: str, script_file_name: str = "edit.sh") -> str:
     """
-    Replace the entire {script_file_name} script with new content.
+    Replace the entire {script_file_name} script with new content in MinIO.
     """
     try:
-        script_path = f"{SCRIPTS_PATH}/{script_file_name}"
+        object_name = f"scripts/{script_file_name}"
 
-        # Write the new script content to the script file
-        with open(script_path, "w", encoding="utf-8") as f:
-            f.write(script_content)
+        # Upload the new script content to MinIO
+        await asyncio.to_thread(
+            upload_file_from_bytes, script_content.encode("utf-8"), object_name, "text/plain"
+        )
 
         bytes_written = len(script_content.encode("utf-8"))
 
@@ -244,48 +313,100 @@ async def modify_edit_script(script_content: str, script_file_name: str = "edit.
             }
         )
 
-    except OSError as e:
+    except MinioServiceError as e:
         return json.dumps({"error": f"Failed to update {script_file_name} script: {str(e)}"})
 
 
 async def execute_edit_script(
     input_files: list[str],
-    output_file: str = "/app/storage/videos/results/output.mp4",
+    output_filename: str = "output.mp4",
     script_file_name: str = "edit.sh",
 ) -> str:
     """
     Executes the {script_file_name} script asynchronously with the specified files.
-    The script is expected to take input files as arguments, followed by the output file.
+    Downloads input files from MinIO, executes the script, and uploads the result back to MinIO.
     """
-    script_path = f"{SCRIPTS_PATH}/{script_file_name}"
-    # Note: The script should be made executable during deployment, not here.
-    # e.g., in a Dockerfile: RUN chmod +x /app/{script_file_name}
-
-    if not os.path.exists(script_path):
-        return json.dumps({"success": False, "error": f"{script_file_name} not found"})
+    temp_files = []
+    temp_script_path = None
 
     try:
+        # Download script from MinIO
+        script_object_name = f"scripts/{script_file_name}"
+        if not file_exists(script_object_name):
+            return json.dumps({"success": False, "error": f"{script_file_name} not found in MinIO"})
+
+        temp_script_path = await asyncio.to_thread(download_file_to_temp, script_object_name)
+
+        # Make script executable
+        os.chmod(temp_script_path, 0o755)
+
+        # Download input files from MinIO to temporary files
+        temp_input_files = []
+        for input_file in input_files:
+            input_object_name = f"videos/{input_file}"
+            if not file_exists(input_object_name):
+                return json.dumps(
+                    {"success": False, "error": f"Input file {input_file} not found in MinIO"}
+                )
+
+            temp_input_path = await asyncio.to_thread(download_file_to_temp, input_object_name)
+            temp_input_files.append(temp_input_path)
+            temp_files.append(temp_input_path)
+
+        # Create temporary output file
+        temp_output_path = tempfile.mktemp(suffix=f"_{output_filename}")
+        temp_files.append(temp_output_path)
+
         # Build the command to execute the script
-        cmd = ["bash", script_path] + input_files + [output_file]
+        cmd = ["bash", temp_script_path] + temp_input_files + [temp_output_path]
 
         # Execute the command asynchronously
         process = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
-            cwd=VIDEOS_PATH,
         )
 
         # Wait for the process to finish and capture the output
         stdout, stderr = await process.communicate()
 
         if process.returncode == 0:
-            return json.dumps(
-                {"success": True, "output": stdout.decode(), "output_file": output_file}
-            )
+            # Upload the result file to MinIO
+            if os.path.exists(temp_output_path):
+                result_object_name = f"results/{output_filename}"
+                await asyncio.to_thread(
+                    upload_file_from_path, temp_output_path, result_object_name, "video/mp4"
+                )
+
+                return json.dumps(
+                    {
+                        "success": True,
+                        "output": stdout.decode(),
+                        "output_file": output_filename,
+                        "output_object": result_object_name,
+                    }
+                )
+            else:
+                return json.dumps(
+                    {
+                        "success": False,
+                        "error": "Script executed but output file was not created",
+                        "stdout": stdout.decode(),
+                    }
+                )
         else:
             return json.dumps(
                 {"success": False, "error": stderr.decode(), "stdout": stdout.decode()}
             )
-    except (OSError, ValueError) as e:
+
+    except (MinioServiceError, OSError) as e:
         return json.dumps({"success": False, "error": f"Failed to execute script: {str(e)}"})
+
+    finally:
+        # Clean up all temporary files
+        for temp_file in temp_files:
+            try:
+                if os.path.exists(temp_file):
+                    os.unlink(temp_file)
+            except OSError:
+                pass

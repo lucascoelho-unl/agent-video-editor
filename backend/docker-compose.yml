@@ -1,4 +1,42 @@
 services:
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  minio-init:
+    image: python:3.11-slim
+    volumes:
+      - ./scripts:/app/scripts
+      - ./storage:/app/storage
+    environment:
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin123
+      - MINIO_BUCKET_NAME=video-storage
+    command: >
+      sh -c "
+        pip install minio &&
+        python /app/scripts/init_minio.py
+      "
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: "no"
+
   api:
     build:
       context: ./api
@@ -9,20 +47,15 @@ services:
       - "8002:8002"
     volumes:
       - ./api:/app
-      - ./storage:/app/storage
     restart: unless-stopped
-
-  script-reset:
-    image: alpine:latest
-    volumes:
-      - ./storage:/app/storage
-    command: >
-      sh -c "
-        cp /app/storage/scripts/edit_template.sh /app/storage/scripts/edit.sh &&
-        chmod +x /app/storage/scripts/edit.sh &&
-        echo 'Script reset completed - edit.sh restored from template'
-      "
-    restart: "no"
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin123
+      - MINIO_BUCKET_NAME=video-storage
 
   agent:
     build:
@@ -34,14 +67,21 @@ services:
       - "8000:8000"
     volumes:
       - ./agent_worker:/app
-      - ./storage:/app/storage
     restart: unless-stopped
     environment:
       - PYTHONUNBUFFERED=1
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin123
+      - MINIO_BUCKET_NAME=video-storage
     depends_on:
-      - script-reset
+      minio-init:
+        condition: service_completed_successfully
     deploy:
       resources:
         limits:
           cpus: '4.0'
           memory: 4G
+
+volumes:
+  minio_data:

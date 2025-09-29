@@ -91,6 +91,49 @@ async def create_mcp_server():
                 },
             ),
             Tool(
+                name="list_available_media_files",
+                description=(
+                    "Lists all video and audio files available in the storage "
+                    "directory. Optionally includes metadata and sorts by a "
+                    "specified field."
+                ),
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "include_metadata": {
+                            "type": "boolean",
+                            "description": (
+                                "Whether to include detailed metadata (creation time, "
+                                "file size, etc.). Defaults to False."
+                            ),
+                        },
+                        "sort_by": {
+                            "type": "string",
+                            "description": (
+                                "The metadata field to sort by. Valid fields are "
+                                "'filename', 'size_bytes', 'last_modified', "
+                                "Defaults to 'last_modified'. Only applies when "
+                                "include_metadata is True."
+                            ),
+                            "enum": [
+                                "filename",
+                                "size_bytes",
+                                "last_modified",
+                            ],
+                        },
+                        "sort_order": {
+                            "type": "string",
+                            "description": (
+                                "The sort order. Valid values are 'asc' (ascending) "
+                                "and 'desc' (descending). Defaults to 'desc'. Only "
+                                "applies when include_metadata is True."
+                            ),
+                            "enum": ["asc", "desc"],
+                        },
+                    },
+                },
+            ),
+            Tool(
                 name="read_edit_script",
                 description=(
                     "Reads the current content of a script file that can be "
@@ -136,9 +179,9 @@ async def create_mcp_server():
             Tool(
                 name="execute_edit_script",
                 description=(
-                    "Executes a script file with specified input video files and "
-                    "output file. Defaults to edit.sh but can specify any script "
-                    "filename."
+                    "Executes a script file with specified input video files. "
+                    "The output file path is automatically passed as the last argument to the script. "
+                    "Defaults to edit.sh but can specify any script filename."
                 ),
                 inputSchema={
                     "type": "object",
@@ -148,12 +191,9 @@ async def create_mcp_server():
                             "items": {"type": "string"},
                             "description": "List of input video file paths to process.",
                         },
-                        "output_file": {
+                        "output_filename": {
                             "type": "string",
-                            "description": (
-                                "Output file path (default: "
-                                "'/app/storage/videos/results/output.mp4')."
-                            ),
+                            "description": ("Output file path (default: " "'output.mp4')."),
                         },
                         "script_file_name": {
                             "type": "string",
@@ -163,52 +203,6 @@ async def create_mcp_server():
                         },
                     },
                     "required": ["input_files"],
-                },
-            ),
-            Tool(
-                name="list_available_media_files",
-                description=(
-                    "Lists all video and audio files available in the storage "
-                    "directory. Optionally includes metadata and sorts by a "
-                    "specified field."
-                ),
-                inputSchema={
-                    "type": "object",
-                    "properties": {
-                        "include_metadata": {
-                            "type": "boolean",
-                            "description": (
-                                "Whether to include detailed metadata (creation time, "
-                                "file size, etc.). Defaults to False."
-                            ),
-                        },
-                        "sort_by": {
-                            "type": "string",
-                            "description": (
-                                "The metadata field to sort by. Valid fields are "
-                                "'filename', 'size_bytes', 'creation_timestamp', "
-                                "'modification_timestamp', 'access_timestamp'. "
-                                "Defaults to 'creation_timestamp'. Only applies when "
-                                "include_metadata is True."
-                            ),
-                            "enum": [
-                                "filename",
-                                "size_bytes",
-                                "creation_timestamp",
-                                "modification_timestamp",
-                                "access_timestamp",
-                            ],
-                        },
-                        "sort_order": {
-                            "type": "string",
-                            "description": (
-                                "The sort order. Valid values are 'asc' (ascending) "
-                                "and 'desc' (descending). Defaults to 'desc'. Only "
-                                "applies when include_metadata is True."
-                            ),
-                            "enum": ["asc", "desc"],
-                        },
-                    },
                 },
             ),
         ]
