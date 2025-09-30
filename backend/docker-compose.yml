@@ -13,12 +13,12 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
+      interval: 2s
+      timeout: 2s
+      retries: 6
 
   minio-init:
-    image: python:3.11-slim
+    image: python:3.13-slim
     volumes:
       - ./scripts:/app/scripts
       - ./storage:/app/storage

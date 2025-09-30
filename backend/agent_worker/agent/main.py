@@ -2,8 +2,15 @@
 Main entry point for the video editor agent.
 """
 
+import logging
+
 from google.adk.runners import Runner
 from google.adk.sessions import InMemorySessionService
+
+# Configure logging as per ADK documentation
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
 
 try:
     from .agent import root_agent

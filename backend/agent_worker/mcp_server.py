@@ -4,10 +4,10 @@ MCP server for the video editor agent.
 
 import asyncio
 import json
+import logging
 import sys
 from typing import Any, Dict
 
-from logging_config import get_logger
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool
@@ -18,8 +18,6 @@ from tools.tools import (
     modify_edit_script,
     read_edit_script,
 )
-
-logger = get_logger(__name__)
 
 
 async def create_mcp_server():
@@ -39,15 +37,15 @@ async def create_mcp_server():
 
     async def run_tool(name: str, **kwargs):
         try:
-            logger.debug("Running tool '%s' with arguments: %s", name, kwargs)
+            logging.debug("Running tool '%s' with arguments: %s", name, kwargs)
             if asyncio.iscoroutinefunction(tool_logic_registry[name]):
                 result = await tool_logic_registry[name](**kwargs)
             else:
                 result = tool_logic_registry[name](**kwargs)
-            logger.info("Tool '%s' executed successfully", name)
+            logging.info("Tool '%s' executed successfully", name)
             return result
         except (KeyError, TypeError) as e:
-            logger.exception("Error running tool '%s': %s", name, e)
+            logging.exception("Error running tool '%s': %s", name, e)
             return json.dumps({"error": str(e)})
 
     @server.list_tools()
@@ -183,6 +181,8 @@ async def create_mcp_server():
                 name="execute_edit_script",
                 description=(
                     "Executes a script file with specified input video files. "
+                    "Downloads input files from videos/ directory, executes the script, "
+                    "and uploads the output file back to the videos/ directory. "
                     "The output file path is automatically passed as the last argument to the script. "
                     "Defaults to edit.sh but can specify any script filename."
                 ),
@@ -215,10 +215,10 @@ async def create_mcp_server():
         """
         Executes a tool by name with the given arguments.
         """
-        logger.info("Received request to execute tool '%s'", name)
+        logging.info("Received request to execute tool '%s'", name)
         if name in tool_logic_registry:
             result_str = await run_tool(name, **arguments)
-            logger.debug("Tool '%s' returned: %s", name, result_str)
+            logging.debug("Tool '%s' returned: %s", name, result_str)
             return {
                 "content": [
                     {
@@ -229,23 +229,23 @@ async def create_mcp_server():
                 ]
             }
         else:
-            logger.error("Unknown tool called: %s", name)
+            logging.error("Unknown tool called: %s", name)
             raise ValueError(f"Unknown tool called: {name}")
 
-    logger.info("MCP server created successfully")
+    logging.info("MCP server created successfully")
     return server
 
 
 async def main():
     """Entry point that runs the MCP server over stdio."""
     try:
-        logger.info("Starting MCP server...")
+        logging.info("Starting MCP server...")
         server = await create_mcp_server()
         async with stdio_server() as (read_stream, write_stream):
             await server.run(read_stream, write_stream, server.create_initialization_options())
-        logger.info("MCP server stopped gracefully")
+        logging.info("MCP server stopped gracefully")
     except (asyncio.CancelledError, ConnectionError) as e:
-        logger.critical("MCP server failed to start or unexpectedly stopped: %s", e, exc_info=True)
+        logging.error("MCP server failed to start or unexpectedly stopped: %s", e, exc_info=True)
         sys.exit(1)
 
 

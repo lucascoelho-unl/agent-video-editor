@@ -2,12 +2,12 @@
 Defines the video editor agent.
 """
 
+import logging
 import os
 
 from google.adk.agents import Agent
 from google.adk.tools.mcp_tool.mcp_session_manager import StdioConnectionParams
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset
-from logging_config import get_logger
 from mcp import StdioServerParameters
 
 try:
@@ -15,11 +15,14 @@ try:
 except ImportError:
     from prompts import AGENT_DESCRIPTION, AGENT_INSTRUCTION
 
-logger = get_logger(__name__)
+# Configure logging as per ADK documentation
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
 
 mcp_server_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "mcp_server.py"))
 
-logger.debug("MCP server path: %s", mcp_server_path)
+logging.debug("MCP server path: %s", mcp_server_path)
 
 mcp_toolset = MCPToolset(
     connection_params=StdioConnectionParams(
@@ -31,7 +34,7 @@ mcp_toolset = MCPToolset(
     ),
 )
 
-logger.debug("MCP toolset initialized successfully")
+logging.debug("MCP toolset initialized successfully")
 
 root_agent = Agent(
     name="agent",
@@ -40,4 +43,4 @@ root_agent = Agent(
     instruction=(AGENT_INSTRUCTION),
     tools=[mcp_toolset],
 )
-logger.info("Agent initialized successfully")
+logging.info("Agent initialized successfully")

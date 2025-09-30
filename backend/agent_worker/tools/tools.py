@@ -4,19 +4,19 @@ Tools for media analysis and video editing.
 
 import asyncio
 import json
+import logging
 import os
 import tempfile
 from typing import List
 
 from interfaces.llm_service_interface import LLMService
 from interfaces.storage_service_interface import StorageService
-from logging_config import get_logger
 from services.gemini_service import GeminiService
 from services.minio_storage_service import MinioServiceError, MinioStorageService
 
 from .utils import categorize_and_enrich_files, cleanup_temp_files, sort_media_files
 
-logger = get_logger(__name__)
+# Using default logging module
 
 
 class ServiceManager:
@@ -46,7 +46,7 @@ async def analyze_media_files(
     media_filenames: List[str], prompt: str, source_directory: str = "videos"
 ) -> str:
     """Analyzes media files with a given prompt."""
-    logger.info(
+    logging.info(
         "Analyzing %d media files with prompt: '%s'",
         len(media_filenames),
         prompt,
@@ -61,19 +61,19 @@ async def list_available_media_files(
 ) -> str:
     """Lists all available media files from storage."""
     try:
-        logger.info(
+        logging.info(
             "Listing available media files with metadata: %s, sort_by: %s, sort_order: %s",
             include_metadata,
             sort_by,
             sort_order,
         )
         all_files = services.storage_service.list_all_files()
-        logger.debug("Found %d total files in storage.", len(all_files))
+        logging.debug("Found %d total files in storage.", len(all_files))
 
         media_files = await categorize_and_enrich_files(
             services.storage_service, all_files, include_metadata
         )
-        logger.debug(
+        logging.debug(
             "Categorized files: %d videos, %d audios.",
             len(media_files["videos"]),
             len(media_files["audios"]),
@@ -81,10 +81,10 @@ async def list_available_media_files(
 
         if include_metadata:
             try:
-                logger.debug("Sorting media files by '%s' in '%s' order.", sort_by, sort_order)
+                logging.debug("Sorting media files by '%s' in '%s' order.", sort_by, sort_order)
                 media_files = sort_media_files(media_files, sort_by, sort_order)
             except ValueError as e:
-                logger.error("Failed to sort media files: %s", e)
+                logging.error("Failed to sort media files: %s", e)
                 return json.dumps({"error": str(e)})
 
         return json.dumps(
@@ -97,7 +97,7 @@ async def list_available_media_files(
             }
         )
     except MinioServiceError as e:
-        logger.exception("Failed to list media files: %s", e)
+        logging.exception("Failed to list media files: %s", e)
         return json.dumps({"error": f"Failed to list media files: {str(e)}"})
 
 
@@ -106,16 +106,16 @@ async def read_edit_script(script_file_name: str = "edit.sh") -> str:
     temp_path = None
     try:
         object_name = f"scripts/{script_file_name}"
-        logger.info("Reading script: '%s'", object_name)
+        logging.info("Reading script: '%s'", object_name)
         temp_path = await asyncio.to_thread(
             services.storage_service.download_file_to_temp, object_name
         )
         with open(temp_path, "r", encoding="utf-8") as f:
             content = f.read()
-        logger.debug("Successfully read %d bytes from '%s'", len(content), object_name)
+        logging.debug("Successfully read %d bytes from '%s'", len(content), object_name)
         return json.dumps({"script_content": content})
     except (MinioServiceError, OSError) as e:
-        logger.exception("Failed to read script '%s': %s", script_file_name, e)
+        logging.exception("Failed to read script '%s': %s", script_file_name, e)
         return json.dumps({"error": f"Failed to read script: {str(e)}"})
     finally:
         if temp_path:
@@ -126,7 +126,7 @@ async def modify_edit_script(script_content: str, script_file_name: str = "edit.
     """Modifies the content of the edit script."""
     try:
         object_name = f"scripts/{script_file_name}"
-        logger.info("Modifying script: '%s'", object_name)
+        logging.info("Modifying script: '%s'", object_name)
         await asyncio.to_thread(
             services.storage_service.upload_file_from_bytes,
             script_content.encode("utf-8"),
@@ -134,7 +134,7 @@ async def modify_edit_script(script_content: str, script_file_name: str = "edit.
             "text/plain",
         )
         bytes_written = len(script_content.encode("utf-8"))
-        logger.info(
+        logging.info(
             "Successfully wrote %d bytes to '%s'",
             bytes_written,
             script_file_name,
@@ -149,7 +149,7 @@ async def modify_edit_script(script_content: str, script_file_name: str = "edit.
             }
         )
     except MinioServiceError as e:
-        logger.exception("Failed to update script '%s': %s", script_file_name, e)
+        logging.exception("Failed to update script '%s': %s", script_file_name, e)
         return json.dumps({"error": f"Failed to update {script_file_name} script: {str(e)}"})
 
 
@@ -162,42 +162,46 @@ async def execute_edit_script(
     temp_files = []
     try:
         script_object_name = f"scripts/{script_file_name}"
-        logger.info(
+        logging.info(
             "Executing script '%s' with input files: %s", script_file_name, input_file_names
         )
         if not services.storage_service.file_exists(script_object_name):
-            logger.error("Script '%s' not found in storage.", script_object_name)
+            logging.error("Script '%s' not found in storage.", script_object_name)
             return json.dumps({"success": False, "error": f"{script_file_name} not found"})
 
-        logger.debug("Downloading script '%s' to a temporary file...", script_object_name)
+        logging.debug("Downloading script '%s' to a temporary file...", script_object_name)
         temp_script_path = await asyncio.to_thread(
             services.storage_service.download_file_to_temp, script_object_name
         )
         os.chmod(temp_script_path, 0o755)
         temp_files.append(temp_script_path)
 
+        # Download input files in parallel
+        download_tasks = []
         for input_file_name in input_file_names:
             input_object_name = f"videos/{input_file_name}"
-            logger.debug("Downloading input file '%s'...", input_object_name)
+            logging.debug("Checking input file '%s'...", input_object_name)
             if not services.storage_service.file_exists(input_object_name):
-                logger.error("Input file '%s' not found.", input_object_name)
+                logging.error("Input file '%s' not found.", input_object_name)
                 return json.dumps(
                     {"success": False, "error": f"Input file {input_file_name} not found"}
                 )
-            temp_input_path = await asyncio.to_thread(
-                services.storage_service.download_file_to_temp, input_object_name
+            download_tasks.append(
+                asyncio.to_thread(services.storage_service.download_file_to_temp, input_object_name)
             )
-            temp_files.append(temp_input_path)
+
+        temp_input_paths = await asyncio.gather(*download_tasks)
+        temp_files.extend(temp_input_paths)
 
         with tempfile.NamedTemporaryFile(
             suffix=f"_{output_file_name}", delete=False
         ) as temp_output:
             temp_output_path = temp_output.name
         temp_files.append(temp_output_path)
-        logger.debug("Created temporary output file at '%s'", temp_output_path)
+        logging.debug("Created temporary output file at '%s'", temp_output_path)
 
         cmd = ["bash", temp_script_path] + temp_files[1:-1] + [temp_output_path]
-        logger.debug("Executing command: %s", " ".join(cmd))
+        logging.debug("Executing command: %s", " ".join(cmd))
         process = await asyncio.create_subprocess_exec(
             *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
@@ -207,7 +211,7 @@ async def execute_edit_script(
         decoded_stderr = stderr.decode()
 
         if process.returncode != 0:
-            logger.error(
+            logging.error(
                 "Script execution failed with return code %d: %s",
                 process.returncode,
                 decoded_stderr,
@@ -222,7 +226,7 @@ async def execute_edit_script(
             )
 
         if not os.path.exists(temp_output_path) or os.path.getsize(temp_output_path) == 0:
-            logger.error(
+            logging.error(
                 "Script executed but output file was not created or is empty. stderr: %s",
                 decoded_stderr,
             )
@@ -235,15 +239,15 @@ async def execute_edit_script(
                 }
             )
 
-        result_object_name = f"results/{output_file_name}"
-        logger.debug("Uploading result to '%s'...", result_object_name)
+        result_object_name = f"videos/{output_file_name}"
+        logging.debug("Uploading result to '%s'...", result_object_name)
         await asyncio.to_thread(
             services.storage_service.upload_file_from_path,
             temp_output_path,
             result_object_name,
             "video/mp4",
         )
-        logger.info("Successfully executed script and uploaded result.")
+        logging.info("Successfully executed script and uploaded result.")
         return json.dumps(
             {
                 "success": True,
@@ -255,9 +259,9 @@ async def execute_edit_script(
         )
 
     except (MinioServiceError, OSError) as e:
-        logger.exception("Failed to execute script '%s': %s", script_file_name, e)
+        logging.exception("Failed to execute script '%s': %s", script_file_name, e)
         return json.dumps({"success": False, "error": f"Failed to execute script: {str(e)}"})
 
     finally:
         cleanup_temp_files(temp_files)
-        logger.debug("Cleaned up %d temporary files.", len(temp_files))
+        logging.debug("Cleaned up %d temporary files.", len(temp_files))

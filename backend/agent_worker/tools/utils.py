@@ -1,11 +1,11 @@
 """Utility functions for the agent tools."""
 
 import asyncio
+import logging
 import os
 from typing import Any, Dict, List
 
 from interfaces.storage_service_interface import StorageService
-from logging_config import get_logger
 from services.minio_storage_service import MinioServiceError
 
 VIDEO_EXTENSIONS = (".mp4", ".mov", ".avi", ".mkv", ".webm", ".flv", ".wmv")
@@ -33,7 +33,6 @@ async def categorize_and_enrich_files(
     """Categorizes files into videos and audios, optionally fetching metadata."""
     video_files: List[Any] = []
     audio_files: List[Any] = []
-    logger = get_logger(__name__)
 
     for file_path in files:
         base_filename = os.path.basename(file_path)
@@ -50,7 +49,7 @@ async def categorize_and_enrich_files(
                 metadata = await get_file_metadata(storage_service, file_path)
                 target_list.append(metadata)
             except MinioServiceError as e:
-                logger.warning("Could not get metadata for %s: %s", base_filename, e)
+                logging.warning("Could not get metadata for %s: %s", base_filename, e)
                 target_list.append({"filename": base_filename, "error": str(e)})
         else:
             target_list.append(base_filename)
@@ -84,10 +83,9 @@ def sort_media_files(
 
 def cleanup_temp_files(temp_files: List[str]):
     """Deletes a list of temporary files."""
-    logger = get_logger(__name__)
     for temp_file in temp_files:
         try:
             if os.path.exists(temp_file):
                 os.unlink(temp_file)
         except OSError as e:
-            logger.warning("Failed to delete temp file %s: %s", temp_file, e)
+            logging.warning("Failed to delete temp file %s: %s", temp_file, e)
