@@ -9,6 +9,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# Make test script executable
+RUN chmod +x test_timing.py
+
 # Ensure Python output is unbuffered for real-time logging
 ENV PYTHONUNBUFFERED=1
 

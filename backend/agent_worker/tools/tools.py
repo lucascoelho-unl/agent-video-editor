@@ -7,6 +7,8 @@ import json
 import logging
 import os
 import tempfile
+import time
+from datetime import datetime
 from typing import List
 
 from interfaces.llm_service_interface import LLMService
@@ -56,7 +58,7 @@ async def analyze_media_files(
 
 async def list_available_media_files(
     include_metadata: bool = False,
-    sort_by: str = "creation_timestamp",
+    sort_by: str = "last_modified",
     sort_order: str = "desc",
 ) -> str:
     """Lists all available media files from storage."""
@@ -157,41 +159,107 @@ async def execute_edit_script(
     input_file_names: List[str],
     output_file_name: str = "output.mp4",
     script_file_name: str = "edit.sh",
+    timeout_seconds: int = 300,  # 5 minutes default timeout
 ) -> str:
     """Executes the edit script with the given files."""
     temp_files = []
+    start_time = time.time()
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+
     try:
         script_object_name = f"scripts/{script_file_name}"
         logging.info(
-            "Executing script '%s' with input files: %s", script_file_name, input_file_names
+            "[%s] Executing script '%s' with input files: %s (timeout: %ds)",
+            timestamp,
+            script_file_name,
+            input_file_names,
+            timeout_seconds,
         )
-        if not services.storage_service.file_exists(script_object_name):
+
+        # Check if script exists with timeout
+        try:
+            script_exists = await asyncio.wait_for(
+                asyncio.to_thread(services.storage_service.file_exists, script_object_name),
+                timeout=30.0,  # 30 second timeout for file existence check
+            )
+        except asyncio.TimeoutError:
+            logging.error("Timeout checking if script '%s' exists", script_object_name)
+            return json.dumps({"success": False, "error": "Timeout checking script existence"})
+
+        if not script_exists:
             logging.error("Script '%s' not found in storage.", script_object_name)
             return json.dumps({"success": False, "error": f"{script_file_name} not found"})
 
+        # Download script with timeout
         logging.debug("Downloading script '%s' to a temporary file...", script_object_name)
-        temp_script_path = await asyncio.to_thread(
-            services.storage_service.download_file_to_temp, script_object_name
-        )
+        script_download_start = time.time()
+        try:
+            temp_script_path = await asyncio.wait_for(
+                asyncio.to_thread(
+                    services.storage_service.download_file_to_temp, script_object_name
+                ),
+                timeout=60.0,  # 60 second timeout for script download
+            )
+        except asyncio.TimeoutError:
+            logging.error("Timeout downloading script '%s'", script_object_name)
+            return json.dumps({"success": False, "error": "Timeout downloading script"})
+
         os.chmod(temp_script_path, 0o755)
         temp_files.append(temp_script_path)
+        script_download_duration = time.time() - script_download_start
+        logging.info(
+            "[%s] Script download completed in %.3f seconds",
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+            script_download_duration,
+        )
 
-        # Download input files in parallel
+        # Download input files in parallel with timeout
         download_tasks = []
         for input_file_name in input_file_names:
             input_object_name = f"videos/{input_file_name}"
             logging.debug("Checking input file '%s'...", input_object_name)
-            if not services.storage_service.file_exists(input_object_name):
+
+            # Check file existence with timeout
+            try:
+                file_exists = await asyncio.wait_for(
+                    asyncio.to_thread(services.storage_service.file_exists, input_object_name),
+                    timeout=30.0,
+                )
+            except asyncio.TimeoutError:
+                logging.error("Timeout checking if input file '%s' exists", input_object_name)
+                return json.dumps(
+                    {"success": False, "error": f"Timeout checking input file {input_file_name}"}
+                )
+
+            if not file_exists:
                 logging.error("Input file '%s' not found.", input_object_name)
                 return json.dumps(
                     {"success": False, "error": f"Input file {input_file_name} not found"}
                 )
-            download_tasks.append(
-                asyncio.to_thread(services.storage_service.download_file_to_temp, input_object_name)
-            )
 
-        temp_input_paths = await asyncio.gather(*download_tasks)
+            # Create download task with timeout
+            download_task = asyncio.wait_for(
+                asyncio.to_thread(
+                    services.storage_service.download_file_to_temp, input_object_name
+                ),
+                timeout=120.0,  # 2 minutes per file download
+            )
+            download_tasks.append(download_task)
+
+        input_download_start = time.time()
+        try:
+            temp_input_paths = await asyncio.gather(*download_tasks)
+        except asyncio.TimeoutError:
+            logging.error("Timeout downloading input files")
+            return json.dumps({"success": False, "error": "Timeout downloading input files"})
+
         temp_files.extend(temp_input_paths)
+        input_download_duration = time.time() - input_download_start
+        logging.info(
+            "[%s] Input files download completed in %.3f seconds",
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+            input_download_duration,
+        )
 
         with tempfile.NamedTemporaryFile(
             suffix=f"_{output_file_name}", delete=False
@@ -202,10 +270,38 @@ async def execute_edit_script(
 
         cmd = ["bash", temp_script_path] + temp_files[1:-1] + [temp_output_path]
         logging.debug("Executing command: %s", " ".join(cmd))
-        process = await asyncio.create_subprocess_exec(
-            *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+
+        script_exec_start = time.time()
+        try:
+            process = await asyncio.create_subprocess_exec(
+                *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+            )
+            stdout, stderr = await asyncio.wait_for(
+                process.communicate(),
+                timeout=timeout_seconds,  # Use the main timeout for script execution
+            )
+        except asyncio.TimeoutError:
+            logging.error("Script execution timed out after %d seconds", timeout_seconds)
+            # Try to kill the process if it's still running
+            if process.returncode is None:
+                try:
+                    process.kill()
+                    await process.wait()
+                except (OSError, ProcessLookupError) as e:
+                    logging.warning("Failed to kill timed out process: %s", e)
+            return json.dumps(
+                {
+                    "success": False,
+                    "error": f"Script execution timed out after {timeout_seconds} seconds",
+                }
+            )
+
+        script_exec_duration = time.time() - script_exec_start
+        logging.info(
+            "[%s] Script execution completed in %.3f seconds",
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+            script_exec_duration,
         )
-        stdout, stderr = await process.communicate()
 
         decoded_stdout = stdout.decode()
         decoded_stderr = stderr.decode()
@@ -241,11 +337,34 @@ async def execute_edit_script(
 
         result_object_name = f"videos/{output_file_name}"
         logging.debug("Uploading result to '%s'...", result_object_name)
-        await asyncio.to_thread(
-            services.storage_service.upload_file_from_path,
-            temp_output_path,
-            result_object_name,
-            "video/mp4",
+
+        upload_start = time.time()
+        try:
+            await asyncio.wait_for(
+                asyncio.to_thread(
+                    services.storage_service.upload_file_from_path,
+                    temp_output_path,
+                    result_object_name,
+                    "video/mp4",
+                ),
+                timeout=120.0,  # 2 minutes for upload
+            )
+        except asyncio.TimeoutError:
+            logging.error("Timeout uploading result file")
+            return json.dumps({"success": False, "error": "Timeout uploading result file"})
+
+        upload_duration = time.time() - upload_start
+        logging.info(
+            "[%s] Result upload completed in %.3f seconds",
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+            upload_duration,
+        )
+
+        total_duration = time.time() - start_time
+        logging.info(
+            "[%s] Total execute_edit_script completed in %.3f seconds",
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3],
+            total_duration,
         )
         logging.info("Successfully executed script and uploaded result.")
         return json.dumps(
