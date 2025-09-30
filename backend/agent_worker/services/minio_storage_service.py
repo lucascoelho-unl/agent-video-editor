@@ -56,16 +56,21 @@ class MinioStorageService(StorageService):
             )
             raise MinioServiceError(f"Failed to create bucket: {str(e)}") from e
 
-    def download_file_to_temp(self, object_name: str) -> str:
+    def download_file_to_temp(self, object_name: str, local_path: str | None = None) -> str:
         """Downloads a file from MinIO to a temporary location."""
         start_time = time.perf_counter()
+        temp_path = None
         try:
             logging.debug("Downloading '%s' to a temporary file...", object_name)
-            temp_file = tempfile.NamedTemporaryFile(
-                delete=False, suffix=os.path.splitext(object_name)[1]
-            )
-            temp_path = temp_file.name
-            temp_file.close()
+            if local_path:
+                temp_path = local_path
+            else:
+                temp_file = tempfile.NamedTemporaryFile(
+                    delete=False, suffix=os.path.splitext(object_name)[1]
+                )
+                temp_path = temp_file.name
+                temp_file.close()
+
             self.minio_client.fget_object(self.minio_bucket_name, object_name, temp_path)
             duration = time.perf_counter() - start_time
             logging.info(

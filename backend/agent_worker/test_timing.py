@@ -85,12 +85,11 @@ async def test_video_processing():
 
         log_with_timestamp(f"Processing videos: {input_filenames}")
 
-        # Execute the edit script with a shorter timeout for testing
+        # Execute the edit script
         exec_result = await execute_edit_script(
-            input_file_names=input_filenames,
-            output_file_name="test_output.mp4",
+            input_files=input_filenames,
+            output_file="test_output.mp4",
             script_file_name="edit.sh",
-            timeout_seconds=60,  # 1 minute timeout for testing
         )
 
         step2_duration = time.time() - step2_start
@@ -106,8 +105,6 @@ async def test_video_processing():
                 log_with_timestamp(f"Script stdout: {exec_data['stdout']}")
         else:
             log_with_timestamp(f"Script execution failed: {exec_data.get('error')}", "ERROR")
-            if exec_data.get("stderr"):
-                log_with_timestamp(f"Script stderr: {exec_data['stderr']}", "ERROR")
 
         # Total timing
         total_duration = time.time() - start_time

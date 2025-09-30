@@ -57,9 +57,10 @@ async def create_mcp_server():
             Tool(
                 name="analyze_media_files",
                 description=(
-                    "Analyzes multiple video and audio files (or one if only one is "
-                    "provided) with a multimodal AI model to understand their content. "
-                    "Provide a list of media filenames and a text prompt."
+                    "Analyzes video or audio content using a multimodal AI to provide "
+                    "insights. Use this to understand what's in the media files before "
+                    "deciding on an editing strategy. The tool downloads files from "
+                    "storage, analyzes them, and returns a text description."
                 ),
                 inputSchema={
                     "type": "object",
@@ -68,23 +69,23 @@ async def create_mcp_server():
                             "type": "array",
                             "items": {"type": "string"},
                             "description": (
-                                "A list of filenames of the media files to analyze "
-                                "(e.g., ['video1.mp4', 'audio1.mp3'])."
+                                "A list of media filenames to analyze (e.g., "
+                                "['video1.mp4', 'audio1.mp3'])."
                             ),
                         },
                         "prompt": {
                             "type": "string",
                             "description": (
-                                "The text prompt for the analysis (e.g., 'Describe "
-                                "what is happening in these media files.')."
+                                "The guiding question or instruction for the analysis "
+                                "(e.g., 'Identify the main speaker in the audio.' or "
+                                "'Summarize the key events in the video.')."
                             ),
                         },
                         "source_directory": {
                             "type": "string",
                             "description": (
-                                "The directory to get the media files from (default: "
-                                "'videos'). Media files are stored in "
-                                "/app/storage/videos/."
+                                "The source prefix in the object storage for the media "
+                                "files (e.g., 'videos' or 'audios'). Defaults to 'videos'."
                             ),
                         },
                     },
@@ -94,9 +95,9 @@ async def create_mcp_server():
             Tool(
                 name="list_available_media_files",
                 description=(
-                    "Lists all video and audio files available in the storage "
-                    "directory. Optionally includes metadata and sorts by a "
-                    "specified field."
+                    "Lists all video and audio files in object storage, with optional "
+                    "metadata and sorting. Essential for discovering what media is "
+                    "available to work with."
                 ),
                 inputSchema={
                     "type": "object",
@@ -104,17 +105,16 @@ async def create_mcp_server():
                         "include_metadata": {
                             "type": "boolean",
                             "description": (
-                                "Whether to include detailed metadata (creation time, "
-                                "file size, etc.). Defaults to False."
+                                "Set to true to include detailed metadata such as file "
+                                "size and last modified date. Defaults to False."
                             ),
                         },
                         "sort_by": {
                             "type": "string",
                             "description": (
-                                "The metadata field to sort by. Valid fields are "
-                                "'filename', 'size_bytes', 'last_modified', "
-                                "Defaults to 'last_modified'. Only applies when "
-                                "include_metadata is True."
+                                "The field to sort by when metadata is included. "
+                                "Options: 'filename', 'size_bytes', 'last_modified'. "
+                                "Defaults to 'last_modified'."
                             ),
                             "enum": [
                                 "filename",
@@ -125,9 +125,7 @@ async def create_mcp_server():
                         "sort_order": {
                             "type": "string",
                             "description": (
-                                "The sort order. Valid values are 'asc' (ascending) "
-                                "and 'desc' (descending). Defaults to 'desc'. Only "
-                                "applies when include_metadata is True."
+                                "The sort order ('asc' or 'desc'). Defaults to 'desc'."
                             ),
                             "enum": ["asc", "desc"],
                         },
@@ -137,9 +135,8 @@ async def create_mcp_server():
             Tool(
                 name="read_edit_script",
                 description=(
-                    "Reads the current content of a script file that can be "
-                    "modified for video editing. Defaults to edit.sh but can "
-                    "specify any script filename."
+                    "Reads the content of an FFmpeg script from storage. Always use "
+                    "this to retrieve the current script before making changes."
                 ),
                 inputSchema={
                     "type": "object",
@@ -147,7 +144,7 @@ async def create_mcp_server():
                         "script_file_name": {
                             "type": "string",
                             "description": (
-                                "The name of the script file to read (default: " "'edit.sh')."
+                                "The name of the script to read (default: 'edit.sh')."
                             ),
                         },
                     },
@@ -156,21 +153,20 @@ async def create_mcp_server():
             Tool(
                 name="modify_edit_script",
                 description=(
-                    "Replace the entire content of a script file with new content. "
-                    "Use this to modify scripts for different video editing tasks. "
-                    "Defaults to edit.sh but can specify any script filename."
+                    "Overwrites an FFmpeg script in storage with new content. Use this "
+                    "to update a script with your desired editing commands."
                 ),
                 inputSchema={
                     "type": "object",
                     "properties": {
                         "script_content": {
                             "type": "string",
-                            "description": "The complete script content to write to the file.",
+                            "description": "The full content to write to the script file.",
                         },
                         "script_file_name": {
                             "type": "string",
                             "description": (
-                                "The name of the script file to modify (default: " "'edit.sh')."
+                                "The name of the script to modify (default: 'edit.sh')."
                             ),
                         },
                     },
@@ -180,32 +176,42 @@ async def create_mcp_server():
             Tool(
                 name="execute_edit_script",
                 description=(
-                    "Executes a script file with specified input video files. "
-                    "Downloads input files from videos/ directory, executes the script, "
-                    "and uploads the output file back to the videos/ directory. "
-                    "The output file path is automatically passed as the last argument to the script. "
-                    "Defaults to edit.sh but can specify any script filename."
+                    "Executes an editing script on video files from storage. This tool "
+                    "orchestrates a complete editing job by: 1. Downloading the "
+                    "specified input video files from the 'videos/' prefix in storage. "
+                    "2. Downloading the specified script from the 'scripts/' prefix. "
+                    "3. Executing the script with the inputs. 4. Uploading the "
+                    "resulting video to the 'videos/' prefix with the specified output "
+                    "filename. The script receives input filenames as arguments, "
+                    "followed by the output filename."
                 ),
                 inputSchema={
                     "type": "object",
                     "properties": {
-                        "input_file_names": {
+                        "input_files": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "List of input video file paths to process.",
+                            "description": (
+                                "A list of input video filenames to be processed from the "
+                                "'videos' prefix in storage."
+                            ),
                         },
-                        "output_file_name": {
+                        "output_file": {
                             "type": "string",
-                            "description": ("Output file path (default: " "'output.mp4')."),
+                            "description": (
+                                "The desired filename for the output video, which will be "
+                                "stored in the 'videos' prefix."
+                            ),
                         },
                         "script_file_name": {
                             "type": "string",
                             "description": (
-                                "The name of the script file to execute (default: " "'edit.sh')."
+                                "The name of the script file to execute (default: "
+                                "'edit.sh')."
                             ),
                         },
                     },
-                    "required": ["input_file_names"],
+                    "required": ["input_files", "output_file"],
                 },
             ),
         ]

@@ -7,7 +7,7 @@ class StorageService(ABC):
     """Abstract interface for a storage service."""
 
     @abstractmethod
-    def download_file_to_temp(self, object_name: str) -> str:
+    def download_file_to_temp(self, object_name: str, local_path: str | None = None) -> str:
         """Downloads a file to a temporary location."""
 
     @abstractmethod
