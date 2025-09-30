@@ -9,11 +9,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Make test script executable
-RUN chmod +x test_timing.py
-
-# Ensure Python output is unbuffered for real-time logging
-ENV PYTHONUNBUFFERED=1
-
-# CMD ["adk", "api_server", "--host", "0.0.0.0", "--port", "8000", "agent"]
-CMD ["adk", "web", "--host", "0.0.0.0", "--log_level", "INFO"]
+CMD ["python", "agent/main.py"]

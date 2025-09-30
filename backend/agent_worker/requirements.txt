@@ -4,3 +4,8 @@ google-adk
 mcp
 uvicorn
 minio
+langsmith
+langgraph
+langchain
+langchain-google-genai
+langchain-mcp-adapters

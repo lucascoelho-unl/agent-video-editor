@@ -1,52 +1,42 @@
-"""
-Main entry point for the video editor agent.
-"""
+# backend/agent_worker/agent/main.py
+import asyncio
+import os
 
-import logging
-
-from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService
-
-# Configure logging as per ADK documentation
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
-)
+from dotenv import load_dotenv
 
 try:
-    from .agent import root_agent
+    from .agent import create_agent
 except ImportError:
-    from agent import root_agent
+    from agent import create_agent
 
-session_service = InMemorySessionService()
-
-runner = Runner(
-    agent=root_agent,
-    session_service=session_service,
-    app_name="agent",
-)
+# Load environment variables from .env file
+load_dotenv()
 
 
-# Dockerfile CMD to run the Agent API:
-# CMD["adk", "api_server", "--host", "0.0.0.0", "--port", "8000", "agent"]
+async def main():
+    """
+    Create and run the video editor agent with a sample task.
+    """
+    print("Creating LangGraph agent...")
+    agent = await create_agent()
+    print("Agent created. Invoking with a sample task...")
 
-# Creating a user and session id:
-# curl -X POST http://localhost:8000/apps/agent/users/user_123/sessions/session_123 \
-# -H "Content-Type: application/json" \
-# -d '{}'
+    # Example task for the video agent
+    result = await agent.ainvoke(
+        {
+            "messages": [
+                {"role": "user", "content": "First, list all the available media files for me."}
+            ],
+        },
+        config={"recursion_limit": 100},
+    )
 
-# Making a call with the Session and User ID:
-# curl -X POST http://localhost:8000/run \
-# -H "Content-Type: application/json" \
-# -d '{
-#     "app_name": "agent",
-#     "user_id": "user_123",
-#     "session_id": "session_123",
-#     "new_message": {
-#         "role": "user",
-#         "parts": [
-#             {
-#                 "text": "Please edit the videos at your disposal"
-#             }
-#         ]
-#     }
-# }'
+    print("\n--- Agent Result ---")
+    print(result)
+    print("--------------------")
+
+
+if __name__ == "__main__":
+    # This will run the agent once when the script is executed.
+    # Traces will be sent to LangSmith automatically due to the environment variables.
+    asyncio.run(main())

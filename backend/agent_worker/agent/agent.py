@@ -1,46 +1,48 @@
-"""
-Defines the video editor agent.
-"""
+# backend/agent_worker/agent/agent.py
+"""Agent module for creating LangGraph agents with MCP tools."""
 
-import logging
 import os
 
-from google.adk.agents import Agent
-from google.adk.tools.mcp_tool.mcp_session_manager import StdioConnectionParams
-from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset
-from mcp import StdioServerParameters
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_mcp_adapters.client import MultiServerMCPClient
+from langgraph.prebuilt import create_react_agent
 
 try:
-    from .prompts import AGENT_DESCRIPTION, AGENT_INSTRUCTION
+    from .prompts import AGENT_INSTRUCTION
 except ImportError:
-    from prompts import AGENT_DESCRIPTION, AGENT_INSTRUCTION
+    from prompts import AGENT_INSTRUCTION
 
-# Configure logging as per ADK documentation
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+MCP_SERVER_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "mcp_server.py"))
+AGENT_MODEL = os.getenv("AGENT_MODEL")
+
+
+# Initialize MCP client with multiple servers
+mcp_client = MultiServerMCPClient(
+    {
+        "mcp_server": {
+            "command": "python",
+            "args": [MCP_SERVER_PATH],
+            "transport": "stdio",
+        },
+    }
 )
 
-mcp_server_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "mcp_server.py"))
 
-logging.debug("MCP server path: %s", mcp_server_path)
+async def create_agent():
+    """
+    Create and return the LangGraph agent with MCP tools.
+    """
+    tools = await mcp_client.get_tools()
 
-mcp_toolset = MCPToolset(
-    connection_params=StdioConnectionParams(
-        server_params=StdioServerParameters(
-            command="python3",
-            args=[mcp_server_path],
-        ),
-        timeout=100000,
-    ),
-)
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash-latest", google_api_key=os.getenv("GOOGLE_API_KEY")
+    )
 
-logging.debug("MCP toolset initialized successfully")
+    agent = create_react_agent(
+        model=llm,
+        tools=tools,
+        # Using the original agent's instruction prompt
+        prompt=AGENT_INSTRUCTION,
+    )
 
-root_agent = Agent(
-    name="agent",
-    model="gemini-2.5-pro",
-    description=(AGENT_DESCRIPTION),
-    instruction=(AGENT_INSTRUCTION),
-    tools=[mcp_toolset],
-)
-logging.info("Agent initialized successfully")
+    return agent

@@ -7,12 +7,11 @@ import json
 import logging
 import os
 import tempfile
-import time
-from datetime import datetime
 from typing import List
 
 from interfaces.llm_service_interface import LLMService
 from interfaces.storage_service_interface import StorageService
+from langsmith import traceable
 from services.gemini_service import GeminiService
 from services.minio_storage_service import MinioServiceError, MinioStorageService
 
@@ -44,6 +43,7 @@ class ServiceManager:
 services = ServiceManager()
 
 
+@traceable
 async def analyze_media_files(
     media_filenames: List[str], prompt: str, source_directory: str = "videos"
 ) -> str:
@@ -56,6 +56,7 @@ async def analyze_media_files(
     return await services.llm_service.analyze_media_files(media_filenames, prompt, source_directory)
 
 
+@traceable
 async def list_available_media_files(
     include_metadata: bool = False,
     sort_by: str = "last_modified",
@@ -103,6 +104,7 @@ async def list_available_media_files(
         return json.dumps({"error": f"Failed to list media files: {str(e)}"})
 
 
+@traceable
 async def read_edit_script(script_file_name: str = "edit.sh") -> str:
     """Reads the content of the edit script."""
     temp_path = None
@@ -124,6 +126,7 @@ async def read_edit_script(script_file_name: str = "edit.sh") -> str:
             cleanup_temp_files([temp_path])
 
 
+@traceable
 async def modify_edit_script(script_content: str, script_file_name: str = "edit.sh") -> str:
     """Modifies the content of the edit script."""
     try:
@@ -155,6 +158,7 @@ async def modify_edit_script(script_content: str, script_file_name: str = "edit.
         return json.dumps({"error": f"Failed to update {script_file_name} script: {str(e)}"})
 
 
+@traceable
 async def execute_edit_script(
     input_files: list[str],
     output_file: str,
@@ -203,7 +207,11 @@ async def execute_edit_script(
         logging.debug("Made script '%s' executable.", local_script_path)
 
         # Execute the script
-        cmd = ["bash", local_script_path] + [os.path.basename(p) for p in local_input_paths] + [os.path.basename(local_output_path)]
+        cmd = (
+            ["bash", local_script_path]
+            + [os.path.basename(p) for p in local_input_paths]
+            + [os.path.basename(local_output_path)]
+        )
         logging.info("Executing command: %s", " ".join(cmd))
         process = await asyncio.create_subprocess_exec(
             *cmd,
@@ -228,9 +236,7 @@ async def execute_edit_script(
                 {"success": True, "output": stdout.decode(), "output_file": output_object_name}
             )
         else:
-            logging.error(
-                "Script execution failed with return code %d.", process.returncode
-            )
+            logging.error("Script execution failed with return code %d.", process.returncode)
             logging.error("Stderr: %s", stderr.decode())
             logging.error("Stdout: %s", stdout.decode())
             return json.dumps(
@@ -242,7 +248,11 @@ async def execute_edit_script(
     finally:
         # Cleanup all temporary files
         logging.info("Cleaning up temporary files...")
-        all_temp_files = local_input_paths + ([local_script_path] if local_script_path else []) + [local_output_path]
+        all_temp_files = (
+            local_input_paths
+            + ([local_script_path] if local_script_path else [])
+            + [local_output_path]
+        )
         cleanup_temp_files(all_temp_files)
         if os.path.exists(temp_dir):
             logging.debug("Removing temporary directory: %s", temp_dir)

@@ -5,12 +5,9 @@ MinIO service for handling video and audio file operations with S3-compatible st
 import io
 import os
 
-from dotenv import load_dotenv
 from fastapi import HTTPException, UploadFile
 from minio import Minio
 from minio.error import S3Error
-
-load_dotenv()
 
 # MinIO configuration
 MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "minio:9000")

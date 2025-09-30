@@ -19,40 +19,22 @@ from interfaces.storage_service_interface import StorageService
 class GeminiService(LLMService):
     """Implementation of the LLMService using Google's Gemini."""
 
-    def __init__(self, storage_service: StorageService, model_name: str = "gemini-2.5-pro"):
+    def __init__(self, storage_service: StorageService, model_name: str = os.getenv("AGENT_MODEL")):
         """Initializes the GeminiService."""
         self.storage_service = storage_service
+
+        if not model_name:
+            logging.critical("AGENT_MODEL not found in environment variables")
+            raise ValueError("AGENT_MODEL not found in environment variables")
         self.model_name = model_name
 
-        # Try to load .env file if GOOGLE_API_KEY is not set
-        self.gemini_api_key = os.environ.get("GOOGLE_API_KEY")
+        self.gemini_api_key = os.getenv("GOOGLE_API_KEY")
         if not self.gemini_api_key:
-            self._load_env_file()
-            self.gemini_api_key = os.environ.get("GOOGLE_API_KEY")
+            logging.critical("GOOGLE_API_KEY not found in environment variables")
+            raise ValueError("GOOGLE_API_KEY not found in environment variables")
 
-        if not self.gemini_api_key:
-            logging.critical("GOOGLE_API_KEY not found in environment variables or .env file")
-            raise ValueError("GOOGLE_API_KEY not found in environment variables or .env file")
         genai.configure(api_key=self.gemini_api_key)
         logging.info("GeminiService initialized with model: %s", self.model_name)
-
-    def _load_env_file(self):
-        """Load environment variables from agent/.env file."""
-        env_path = Path(__file__).parent.parent / "agent" / ".env"
-
-        if env_path.exists():
-            logging.info("Loading environment variables from: %s", env_path)
-            with open(env_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith("#") and "=" in line:
-                        key, value = line.split("=", 1)
-                        key = key.strip()
-                        value = value.strip().strip("\"'")
-                        if key not in os.environ:
-                            os.environ[key] = value
-        else:
-            logging.warning("No .env file found at: %s", env_path)
 
     async def analyze_media_files(
         self, media_filenames: list[str], prompt: str, source_directory: str = "videos"
