@@ -1,6 +1,6 @@
-fastapi>=0.112.0
-uvicorn>=0.30.3
-python-multipart>=0.0.9
-docker>=7.1.0
+fastapi
+uvicorn
+python-multipart
+docker
 python-dotenv
-minio>=7.2.0
+minio
