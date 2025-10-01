@@ -4,7 +4,7 @@ import asyncio
 import base64
 import json
 import logging
-import mimetypes  # Use the standard library for MIME types
+import mimetypes
 import os
 
 from google.api_core import exceptions
@@ -73,13 +73,16 @@ class GeminiService(LLMService):
                     content.append(
                         {
                             "type": "image_url",
+                            "filename": filename,
                             "image_url": f"data:{mime_type};base64,{encoded_data}",
+                            "mime_type": mime_type,
                         }
                     )
                 else:  # For video, audio, etc.
                     content.append(
                         {
                             "type": "media",
+                            "filename": filename,
                             "data": encoded_data,
                             "mime_type": mime_type,
                         }
