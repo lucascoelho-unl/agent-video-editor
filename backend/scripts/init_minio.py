@@ -13,7 +13,7 @@ from minio.error import S3Error
 from urllib3.exceptions import MaxRetryError
 
 # MinIO configuration
-MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "localhost:9000")
+MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "minio:9000")
 MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
 MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "minioadmin123")
 MINIO_BUCKET_NAME = os.getenv("MINIO_BUCKET_NAME", "video-storage")
@@ -23,8 +23,8 @@ class MinioNotReadyError(Exception):
     """Custom exception for when MinIO is not ready."""
 
 
-def wait_for_minio(max_retries=30, delay=2):
-    """Wait for MinIO to be available."""
+def wait_for_minio(max_retries=20, initial_delay=1, max_delay=5):
+    """Wait for MinIO to be available with exponential backoff."""
     print(f"Waiting for MinIO to be available at {MINIO_ENDPOINT}...")
 
     for attempt in range(max_retries):
@@ -41,6 +41,8 @@ def wait_for_minio(max_retries=30, delay=2):
         except (S3Error, MaxRetryError) as e:
             print(f"Attempt {attempt + 1}/{max_retries}: MinIO not ready yet ({e})")
             if attempt < max_retries - 1:
+                # Exponential backoff with jitter
+                delay = min(initial_delay * (2**attempt), max_delay)
                 time.sleep(delay)
             else:
                 raise MinioNotReadyError(f"MinIO not available after {max_retries} attempts") from e

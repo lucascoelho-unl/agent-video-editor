@@ -1,45 +1,38 @@
-"""
-Main entry point for the video editor agent.
-"""
+"""Main entry point for the video editor agent."""
 
-from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService
+import asyncio
 
 try:
-    from .agent import root_agent
+    from .agent import create_agent
 except ImportError:
-    from agent import root_agent
-
-session_service = InMemorySessionService()
-
-runner = Runner(
-    agent=root_agent,
-    session_service=session_service,
-    app_name="agent",
-)
+    from agent import create_agent
 
 
-# Dockerfile CMD to run the Agent API:
-# CMD["adk", "api_server", "--host", "0.0.0.0", "--port", "8000", "agent"]
+async def main():
+    """
+    Create and run the video editor agent with a sample task.
+    """
+    print("Creating LangGraph agent...")
+    agent = await create_agent()
+    print("Agent created. Invoking with a sample task...")
 
-# Creating a user and session id:
-# curl -X POST http://localhost:8000/apps/agent/users/user_123/sessions/session_123 \
-# -H "Content-Type: application/json" \
-# -d '{}'
+    # Example task for the video agent
+    result = await agent.ainvoke(
+        {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Merge all the videos that are available to you.",
+                }
+            ],
+        },
+        config={"recursion_limit": 100},
+    )
 
-# Making a call with the Session and User ID:
-# curl -X POST http://localhost:8000/run \
-# -H "Content-Type: application/json" \
-# -d '{
-#     "app_name": "agent",
-#     "user_id": "user_123",
-#     "session_id": "session_123",
-#     "new_message": {
-#         "role": "user",
-#         "parts": [
-#             {
-#                 "text": "Please edit the videos at your disposal"
-#             }
-#         ]
-#     }
-# }'
+    print("\n--- Agent Result ---")
+    print(result)
+    print("--------------------")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

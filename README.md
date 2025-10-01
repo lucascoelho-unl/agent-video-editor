@@ -19,7 +19,8 @@ inside docker:
 adk run agent
 
 TODO: Database
-TODO: Remove coupling from entire code.
+TODO: Remove coupling from API.
+TODO: Edit script taking too long.
 
 - TODO: Add following agent specialized in analizing transcript context and organizing the merging order
 - TODO: Move video processing to when user clicks edit button.
