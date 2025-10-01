@@ -6,27 +6,24 @@ import logging
 import os
 import re
 import uuid
-from pathlib import Path
 
 import google.generativeai as genai
 from google.api_core import exceptions
 from interfaces.llm_service_interface import LLMService
 from interfaces.storage_service_interface import StorageService
 
-# Using default logging module
-
 
 class GeminiService(LLMService):
     """Implementation of the LLMService using Google's Gemini."""
 
-    def __init__(self, storage_service: StorageService, model_name: str = os.getenv("AGENT_MODEL")):
+    def __init__(self, storage_service: StorageService):
         """Initializes the GeminiService."""
         self.storage_service = storage_service
 
-        if not model_name:
+        self.model_name = os.getenv("AGENT_MODEL", "gemini-2.5-flash")
+        if not self.model_name:
             logging.critical("AGENT_MODEL not found in environment variables")
             raise ValueError("AGENT_MODEL not found in environment variables")
-        self.model_name = model_name
 
         self.gemini_api_key = os.getenv("GOOGLE_API_KEY")
         if not self.gemini_api_key:
@@ -117,12 +114,14 @@ class GeminiService(LLMService):
             if not uploaded_files:
                 if not_found_files:
                     logging.warning(
-                        "Analysis could not be performed because the following files were not found: %s",
+                        "Analysis could not be performed because the following files"
+                        " were not found: %s",
                         ", ".join(not_found_files),
                     )
                     return json.dumps(
                         {
-                            "analysis": f"Analysis could not be performed because the following files were not found: {', '.join(not_found_files)}."
+                            "analysis": "Analysis could not be performed because"
+                            f" the following files were not found: {', '.join(not_found_files)}."
                         }
                     )
                 logging.error(
@@ -130,7 +129,8 @@ class GeminiService(LLMService):
                 )
                 return json.dumps(
                     {
-                        "analysis": "Analysis could not be performed because no files could be processed."
+                        "analysis": "Analysis could not be performed because no files"
+                        " could be processed."
                     }
                 )
 

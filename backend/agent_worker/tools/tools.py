@@ -17,8 +17,6 @@ from services.minio_storage_service import MinioServiceError, MinioStorageServic
 
 from .utils import categorize_and_enrich_files, cleanup_temp_files, sort_media_files
 
-# Using default logging module
-
 
 class ServiceManager:
     """Manages service instances with lazy initialization."""

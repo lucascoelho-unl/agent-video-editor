@@ -143,9 +143,7 @@ async def create_mcp_server():
                     "properties": {
                         "script_file_name": {
                             "type": "string",
-                            "description": (
-                                "The name of the script to read (default: 'edit.sh')."
-                            ),
+                            "description": ("The name of the script to read (default: 'edit.sh')."),
                         },
                     },
                 },
@@ -206,8 +204,7 @@ async def create_mcp_server():
                         "script_file_name": {
                             "type": "string",
                             "description": (
-                                "The name of the script file to execute (default: "
-                                "'edit.sh')."
+                                "The name of the script file to execute (default: " "'edit.sh')."
                             ),
                         },
                     },
