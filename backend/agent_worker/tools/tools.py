@@ -11,7 +11,6 @@ from typing import List
 
 from interfaces.llm_service_interface import LLMService
 from interfaces.storage_service_interface import StorageService
-from langsmith import traceable
 from services.gemini_service import GeminiService
 from services.minio_storage_service import MinioServiceError, MinioStorageService
 
@@ -41,7 +40,6 @@ class ServiceManager:
 services = ServiceManager()
 
 
-@traceable
 async def analyze_media_files(
     media_filenames: List[str], prompt: str, source_directory: str = "videos"
 ) -> str:
@@ -54,7 +52,6 @@ async def analyze_media_files(
     return await services.llm_service.analyze_media_files(media_filenames, prompt, source_directory)
 
 
-@traceable
 async def list_available_media_files(
     include_metadata: bool = False,
     sort_by: str = "last_modified",
@@ -102,7 +99,6 @@ async def list_available_media_files(
         return json.dumps({"error": f"Failed to list media files: {str(e)}"})
 
 
-@traceable
 async def read_edit_script(script_file_name: str = "edit.sh") -> str:
     """Reads the content of the edit script."""
     temp_path = None
@@ -124,7 +120,6 @@ async def read_edit_script(script_file_name: str = "edit.sh") -> str:
             cleanup_temp_files([temp_path])
 
 
-@traceable
 async def modify_edit_script(script_content: str, script_file_name: str = "edit.sh") -> str:
     """Modifies the content of the edit script."""
     try:
@@ -156,7 +151,6 @@ async def modify_edit_script(script_content: str, script_file_name: str = "edit.
         return json.dumps({"error": f"Failed to update {script_file_name} script: {str(e)}"})
 
 
-@traceable
 async def execute_edit_script(
     input_files: list[str],
     output_file: str,

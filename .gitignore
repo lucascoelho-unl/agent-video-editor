@@ -215,6 +215,8 @@ __marimo__/
 
 backend/storage/videos/*
 
+backend/agent_worker/agent_google_adk/
+
 # Logs
 logs
 *.log

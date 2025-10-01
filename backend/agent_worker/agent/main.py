@@ -22,7 +22,7 @@ async def main():
             "messages": [
                 {
                     "role": "user",
-                    "content": "Merge all the videos that are available to you.",
+                    "content": "Analyse all the media files you have and tell me what is in them.",
                 }
             ],
         },
