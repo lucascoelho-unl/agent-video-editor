@@ -179,8 +179,8 @@ async def create_mcp_server():
                     "specified input video files from the 'medias/' prefix in storage. "
                     "2. Downloading the specified script from the 'scripts/' prefix. "
                     "3. Executing the script with the inputs. 4. Uploading the "
-                    "resulting video to the 'medias/' prefix with the specified output "
-                    "filename. The script receives input filenames as arguments, "
+                    "resulting video to the path specified in the output_filepath. "
+                    "The script receives input filenames as arguments, "
                     "followed by the output filename."
                 ),
                 inputSchema={
@@ -197,9 +197,8 @@ async def create_mcp_server():
                         "output_filepath": {
                             "type": "string",
                             "description": (
-                                "The desired filename for the output video, which will be "
-                                "stored in the 'medias' prefix."
-                                "Should include a path within the storage, e.g., 'results/my_video.mp4'."
+                                "The desired filepath for the output video, which will be "
+                                "stored in object storage (e.g., 'results/my_video.mp4')."
                             ),
                         },
                         "script_file_name": {
