@@ -8,6 +8,6 @@ class LLMService(ABC):
 
     @abstractmethod
     async def analyze_media_files(
-        self, media_filenames: list[str], prompt: str, source_directory: str = "videos"
+        self, media_filenames: list[str], prompt: str, source_directory: str = "medias"
     ) -> str:
         """Analyzes media files with a given prompt."""

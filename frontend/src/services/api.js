@@ -16,8 +16,8 @@ const HTTP_STATUS = {
 const ERROR_MESSAGES = {
   NETWORK_ERROR: "Network error. Please check your connection.",
   UPLOAD_FAILED: "Upload failed. Please try again.",
-  FETCH_VIDEOS_FAILED: "Failed to fetch videos.",
-  DELETE_FAILED: "Failed to delete video.",
+  FETCH_VIDEOS_FAILED: "Failed to fetch media.",
+  DELETE_FAILED: "Failed to delete media file.",
   CONTAINER_STATUS_FAILED: "Failed to get container status.",
 };
 
@@ -69,11 +69,11 @@ class ApiService {
   }
 
   async getMedia() {
-    const response = await fetch(`${API_BASE_URL}/media`);
+    const response = await fetch(`${API_BASE_URL}/medias`);
     return this._handleResponse(response);
   }
 
-  async deleteMedia(filename, source = "videos") {
+  async deleteMedia(filename, source = "medias") {
     const response = await fetch(
       `${API_BASE_URL}/media/${filename}?source=${source}`,
       {
@@ -93,10 +93,10 @@ class ApiService {
     return `${API_BASE_URL}/download/${filename}?source=${source}`;
   }
 
-  async downloadVideo(filename, source = "results") {
+  async downloadMedia(filename, source = "results") {
     const response = await fetch(this.getDownloadUrl(filename, source));
     if (!response.ok) {
-      throw new Error("Failed to download video");
+      throw new Error("Failed to download media file");
     }
     return response.blob();
   }

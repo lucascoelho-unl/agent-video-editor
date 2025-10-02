@@ -1,4 +1,4 @@
-.video-list {
+.media-list {
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
@@ -113,26 +113,26 @@
   font-size: 0.875rem;
 }
 
-.video-sections {
+.media-sections {
   display: flex;
   flex-direction: column;
   gap: 2rem;
 }
 
-.video-section h3 {
+.media-section h3 {
   margin: 0 0 1rem 0;
   font-size: 1.25rem;
   font-weight: 600;
   color: #e2e8f0;
 }
 
-.video-grid {
+.media-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1rem;
 }
 
-.video-item {
+.media-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -143,7 +143,7 @@
   transition: all 0.2s ease;
 }
 
-.video-item:hover {
+.media-item:hover {
   border-color: #64748b;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
@@ -157,7 +157,7 @@
   border-color: #047857;
 }
 
-.video-info {
+.media-info {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -165,17 +165,17 @@
   min-width: 0;
 }
 
-.video-icon {
+.media-icon {
   font-size: 1.5rem;
   flex-shrink: 0;
 }
 
-.video-details {
+.media-details {
   flex: 1;
   min-width: 0;
 }
 
-.video-name {
+.media-name {
   font-weight: 500;
   color: #e2e8f0;
   white-space: nowrap;
@@ -184,14 +184,14 @@
   margin-bottom: 0.25rem;
 }
 
-.video-meta {
+.media-meta {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.video-type {
+.media-type {
   background-color: #334155;
   color: #94a3b8;
   padding: 0.125rem 0.5rem;
@@ -218,7 +218,7 @@
   font-weight: 500;
 }
 
-.video-actions {
+.media-actions {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -276,8 +276,8 @@
   opacity: 0.5;
 }
 
-/* Video Preview Modal */
-.video-preview-modal {
+/* Media Preview Modal */
+.media-preview-modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -291,7 +291,7 @@
   padding: 1rem;
 }
 
-.video-preview-content {
+.media-preview-content {
   background-color: #1e293b;
   border: 1px solid #475569;
   border-radius: 12px;
@@ -302,7 +302,7 @@
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
-.video-preview-header {
+.media-preview-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -311,7 +311,7 @@
   background-color: #0f172a;
 }
 
-.video-preview-header h3 {
+.media-preview-header h3 {
   margin: 0;
   color: #e2e8f0;
   font-size: 1.125rem;
@@ -340,20 +340,20 @@
   color: #e2e8f0;
 }
 
-.video-preview-player {
+.media-preview-player {
   background-color: #000;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.video-preview-player video {
+.media-preview-player media {
   max-width: 100%;
   max-height: 60vh;
   border-radius: 0;
 }
 
-.video-preview-actions {
+.media-preview-actions {
   padding: 1rem 1.5rem;
   border-top: 1px solid #475569;
   background-color: #0f172a;
@@ -361,7 +361,7 @@
   justify-content: center;
 }
 
-.video-preview-actions .download-btn {
+.media-preview-actions .download-btn {
   background-color: #065f46;
   color: #6ee7b7;
   border: 1px solid #047857;
@@ -371,12 +371,12 @@
   transition: all 0.2s ease;
 }
 
-.video-preview-actions .download-btn:hover:not(:disabled) {
+.media-preview-actions .download-btn:hover:not(:disabled) {
   background-color: #047857;
   border-color: #059669;
 }
 
-.video-preview-actions .download-btn:disabled {
+.media-preview-actions .download-btn:disabled {
   background-color: #374151;
   border-color: #4b5563;
   color: #9ca3af;
@@ -384,7 +384,7 @@
 
 /* Responsive design */
 @media (max-width: 640px) {
-  .video-grid {
+  .media-grid {
     grid-template-columns: 1fr;
   }
 
@@ -394,34 +394,34 @@
     align-items: stretch;
   }
 
-  .video-item {
+  .media-item {
     flex-direction: column;
     align-items: stretch;
     gap: 1rem;
   }
 
-  .video-actions {
+  .media-actions {
     justify-content: flex-end;
   }
 
-  .video-preview-content {
+  .media-preview-content {
     width: 95vw;
     max-height: 95vh;
   }
 
-  .video-preview-header {
+  .media-preview-header {
     padding: 0.75rem 1rem;
   }
 
-  .video-preview-header h3 {
+  .media-preview-header h3 {
     font-size: 1rem;
   }
 
-  .video-preview-actions {
+  .media-preview-actions {
     padding: 0.75rem 1rem;
   }
 
-  .video-preview-actions .download-btn {
+  .media-preview-actions .download-btn {
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
   }

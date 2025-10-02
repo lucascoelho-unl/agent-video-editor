@@ -64,8 +64,10 @@ class GeminiService(LLMService):
                     encoded_data = base64.b64encode(media_file.read()).decode("utf-8")
 
                 mime_type, _ = mimetypes.guess_type(temp_path)
-                if not mime_type:
-                    mime_type = "application/octet-stream"  # Default fallback
+                if not mime_type or not mime_type.startswith(
+                    ("video/", "audio/", "image/", "text/")
+                ):
+                    continue  # Default fallback (skip unsupported file)
 
                 logging.info("Adding '%s' to the request with MIME type '%s'", filename, mime_type)
 
@@ -100,7 +102,7 @@ class GeminiService(LLMService):
             if not_found_files:
                 error_msg += f"The following files were not found: {', '.join(not_found_files)}."
             else:
-                error_msg += "No media files could be processed."
+                error_msg += "No media files could be processed. Unsuported files were found."
             logging.error(error_msg)
             return json.dumps({"error": error_msg})
 
@@ -119,6 +121,6 @@ class GeminiService(LLMService):
         except exceptions.GoogleAPICallError as e:
             logging.exception("A Google API error occurred during analysis: %s", e)
             return json.dumps({"error": f"Google API Error: {e}"})
-        except Exception as e:
+        except RuntimeError as e:
             logging.exception("An unexpected error occurred: %s", e)
             return json.dumps({"error": str(e)})

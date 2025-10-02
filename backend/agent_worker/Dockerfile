@@ -9,4 +9,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", "agent/main.py"]
+# CMD ["python", "agent/main.py"]
+CMD ["adk", "web", "--host", "0.0.0.0"]

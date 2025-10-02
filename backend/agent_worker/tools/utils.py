@@ -10,6 +10,7 @@ from services.minio_storage_service import MinioServiceError
 
 VIDEO_EXTENSIONS = (".mp4", ".mov", ".avi", ".mkv", ".webm", ".flv", ".wmv")
 AUDIO_EXTENSIONS = (".mp3", ".wav", ".aac", ".flac", ".ogg", ".m4a", ".wma")
+IMAGE_EXTENSIONS = (".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff")
 
 
 async def get_file_metadata(storage_service: StorageService, object_name: str) -> Dict[str, Any]:
@@ -30,37 +31,39 @@ async def categorize_and_enrich_files(
     files: List[str],
     include_metadata: bool,
 ) -> Dict[str, List[Any]]:
-    """Categorizes files into videos and audios, optionally fetching metadata."""
-    video_files: List[Any] = []
-    audio_files: List[Any] = []
+    """Categorizes files into videos, audios, and images, optionally fetching metadata."""
+    categorized_files: Dict[str, List[Any]] = {"videos": [], "audios": [], "images": []}
 
-    for file_path in files:
+    async def process_file(file_path: str):
+        """Helper to process a single file."""
         base_filename = os.path.basename(file_path)
+        file_ext = os.path.splitext(base_filename)[1].lower()
 
-        if file_path.lower().endswith(VIDEO_EXTENSIONS):
-            target_list = video_files
-        elif file_path.lower().endswith(AUDIO_EXTENSIONS):
-            target_list = audio_files
-        else:
-            continue
-
+        media_info: Any
         if include_metadata:
             try:
-                metadata = await get_file_metadata(storage_service, file_path)
-                target_list.append(metadata)
+                media_info = await get_file_metadata(storage_service, file_path)
             except MinioServiceError as e:
                 logging.warning("Could not get metadata for %s: %s", base_filename, e)
-                target_list.append({"filename": base_filename, "error": str(e)})
+                media_info = {"filename": base_filename, "error": str(e)}
         else:
-            target_list.append(base_filename)
+            media_info = base_filename
 
-    return {"videos": video_files, "audios": audio_files}
+        if file_ext in VIDEO_EXTENSIONS:
+            categorized_files["videos"].append(media_info)
+        elif file_ext in AUDIO_EXTENSIONS:
+            categorized_files["audios"].append(media_info)
+        elif file_ext in IMAGE_EXTENSIONS:
+            categorized_files["images"].append(media_info)
+
+    await asyncio.gather(*(process_file(file) for file in files))
+    return categorized_files
 
 
 def sort_media_files(
     media: Dict[str, List[Any]], sort_by: str, sort_order: str
 ) -> Dict[str, List[Any]]:
-    """Sorts video and audio files by a given key."""
+    """Sorts each category of media files by a given key."""
     if not sort_by:
         return media
 
@@ -75,8 +78,9 @@ def sort_media_files(
             return item.get(sort_by, 0)
         return item
 
-    media["videos"].sort(key=sort_key, reverse=reverse)
-    media["audios"].sort(key=sort_key, reverse=reverse)
+    for category in ["videos", "audios", "images"]:
+        if category in media:
+            media[category].sort(key=sort_key, reverse=reverse)
 
     return media
 

@@ -41,7 +41,7 @@ services = ServiceManager()
 
 
 async def analyze_media_files(
-    media_filenames: List[str], prompt: str, source_directory: str = "videos"
+    media_filenames: List[str], prompt: str, source_directory: str = "medias"
 ) -> str:
     """Analyzes media files with a given prompt."""
     logging.info(
@@ -72,9 +72,10 @@ async def list_available_media_files(
             services.storage_service, all_files, include_metadata
         )
         logging.debug(
-            "Categorized files: %d videos, %d audios.",
+            "Categorized files: %d videos, %d audios, %d images.",
             len(media_files["videos"]),
             len(media_files["audios"]),
+            len(media_files["images"]),
         )
 
         if include_metadata:
@@ -89,8 +90,10 @@ async def list_available_media_files(
             {
                 "videos": media_files["videos"],
                 "audios": media_files["audios"],
+                "images": media_files["images"],
                 "total_video_count": len(media_files["videos"]),
                 "total_audio_count": len(media_files["audios"]),
+                "total_image_count": len(media_files["images"]),
                 "total_count": len(all_files),
             }
         )
@@ -153,30 +156,33 @@ async def modify_edit_script(script_content: str, script_file_name: str = "edit.
 
 async def execute_edit_script(
     input_files: list[str],
-    output_file: str,
+    output_filepath: str,
     script_file_name: str = "edit.sh",
 ) -> str:
     """
     Executes a script asynchronously with specified files from storage.
     Downloads inputs and the script, runs the script, and uploads the output.
+    The 'output_filepath' should be a path within the 'results' directory, e.g.,
+    'results/my_video.mp4'.
     """
     logging.info(
         "Executing edit script '%s' with inputs %s to output '%s'",
         script_file_name,
         input_files,
-        output_file,
+        output_filepath,
     )
     temp_dir = tempfile.mkdtemp()
     logging.debug("Created temporary directory: %s", temp_dir)
     local_input_paths = []
     local_script_path = None
-    local_output_path = os.path.join(temp_dir, output_file)
+    output_filename = os.path.basename(output_filepath)
+    local_output_path = os.path.join(temp_dir, output_filename)
 
     try:
         # Download input files
         logging.info("Downloading input files...")
         for file_name in input_files:
-            object_name = f"videos/{file_name}"
+            object_name = f"medias/{file_name}"
             local_path = os.path.join(temp_dir, file_name)
             logging.debug("Downloading '%s' to '%s'", object_name, local_path)
             await asyncio.to_thread(
@@ -216,16 +222,15 @@ async def execute_edit_script(
         if process.returncode == 0:
             logging.info("Script executed successfully. Uploading output file...")
             # Upload the output file
-            output_object_name = f"videos/{output_file}"
             await asyncio.to_thread(
                 services.storage_service.upload_file_from_path,
                 local_output_path,
-                output_object_name,
+                output_filepath,
                 "video/mp4",
             )
-            logging.info("Successfully uploaded '%s'", output_object_name)
+            logging.info("Successfully uploaded '%s'", output_filepath)
             return json.dumps(
-                {"success": True, "output": stdout.decode(), "output_file": output_object_name}
+                {"success": True, "output": stdout.decode(), "output_file": output_filepath}
             )
         else:
             logging.error("Script execution failed with return code %d.", process.returncode)

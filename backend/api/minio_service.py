@@ -18,7 +18,8 @@ MINIO_BUCKET_NAME = os.getenv("MINIO_BUCKET_NAME", "video-storage")
 # File type validation
 ALLOWED_VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv", ".webm", ".flv", ".wmv"}
 ALLOWED_AUDIO_EXTENSIONS = {".mp3", ".wav", ".aac", ".flac", ".ogg", ".m4a", ".wma"}
-ALLOWED_EXTENSIONS = ALLOWED_VIDEO_EXTENSIONS | ALLOWED_AUDIO_EXTENSIONS
+ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff"}
+ALLOWED_EXTENSIONS = ALLOWED_VIDEO_EXTENSIONS | ALLOWED_AUDIO_EXTENSIONS | ALLOWED_IMAGE_EXTENSIONS
 
 # Initialize MinIO client
 minio_client = Minio(
@@ -51,7 +52,7 @@ def save_media_file(file: UploadFile) -> dict:
 
     # Check if file already exists
     try:
-        minio_client.stat_object(MINIO_BUCKET_NAME, f"videos/{file.filename}")
+        minio_client.stat_object(MINIO_BUCKET_NAME, f"medias/{file.filename}")
         raise HTTPException(status_code=409, detail="File with the same name already exists")
     except S3Error as e:
         if e.code != "NoSuchKey":
@@ -69,26 +70,30 @@ def save_media_file(file: UploadFile) -> dict:
 
         minio_client.put_object(
             MINIO_BUCKET_NAME,
-            f"videos/{file.filename}",
+            f"medias/{file.filename}",
             io.BytesIO(file_data),
             length=len(file_data),
             content_type=file.content_type or "application/octet-stream",
         )
 
-        file_type = "video" if file_extension in ALLOWED_VIDEO_EXTENSIONS else "audio"
+        file_type = "video"
+        if file_extension in ALLOWED_AUDIO_EXTENSIONS:
+            file_type = "audio"
+        elif file_extension in ALLOWED_IMAGE_EXTENSIONS:
+            file_type = "image"
         return {"message": f"Successfully uploaded {file_type} file: {file.filename}"}
 
     except S3Error as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload file: {str(e)}") from e
 
 
-def delete_media_file(filename: str, source: str = "videos") -> dict:
+def delete_media_file(filename: str, source: str = "medias") -> dict:
     """
     Deletes a video or audio file from MinIO storage.
     """
     # Map source to object prefix
     source_map = {
-        "videos": "videos/",
+        "medias": "medias/",
         "results": "results/",
         "temp": "temp/",
     }
@@ -111,7 +116,7 @@ def list_media_files() -> dict:
     """
     Lists all video and audio files in MinIO storage.
     """
-    result = {"videos": [], "audio": [], "results": [], "temp": []}
+    result = {"medias": [], "results": [], "temp": []}
 
     try:
         # List objects in the bucket
@@ -132,11 +137,9 @@ def list_media_files() -> dict:
 
             file_extension = os.path.splitext(filename)[1].lower()
 
-            if directory == "videos":
-                if file_extension in ALLOWED_VIDEO_EXTENSIONS:
-                    result["videos"].append(filename)
-                elif file_extension in ALLOWED_AUDIO_EXTENSIONS:
-                    result["audio"].append(filename)
+            if directory == "medias":
+                if file_extension in ALLOWED_EXTENSIONS:
+                    result["medias"].append(filename)
             elif directory == "results":
                 result["results"].append(filename)
             elif directory == "temp":
@@ -148,13 +151,13 @@ def list_media_files() -> dict:
     return result
 
 
-def get_media_file(filename: str, source: str = "videos") -> bytes:
+def get_media_file(filename: str, source: str = "medias") -> bytes:
     """
     Downloads a media file from MinIO storage.
     """
     # Map source to object prefix
     source_map = {
-        "videos": "videos/",
+        "medias": "medias/",
         "results": "results/",
         "temp": "temp/",
     }
@@ -173,32 +176,13 @@ def get_media_file(filename: str, source: str = "videos") -> bytes:
         raise HTTPException(status_code=500, detail=f"Failed to download file: {str(e)}") from e
 
 
-def save_result_file(file_data: bytes, filename: str) -> dict:
-    """
-    Saves a result file to MinIO storage.
-    """
-    ensure_bucket_exists()
-
-    try:
-        minio_client.put_object(
-            MINIO_BUCKET_NAME,
-            f"results/{filename}",
-            io.BytesIO(file_data),
-            length=len(file_data),
-            content_type="video/mp4",
-        )
-        return {"message": f"Successfully saved result file: {filename}"}
-    except S3Error as e:
-        raise HTTPException(status_code=500, detail=f"Failed to save result file: {str(e)}") from e
-
-
-def get_file_url(filename: str, source: str = "videos", expires_in_seconds: int = 3600) -> str:
+def get_file_url(filename: str, source: str = "medias", expires_in_seconds: int = 3600) -> str:
     """
     Generates a presigned URL for downloading a file from MinIO.
     """
     # Map source to object prefix
     source_map = {
-        "videos": "videos/",
+        "medias": "medias/",
         "results": "results/",
         "temp": "temp/",
     }

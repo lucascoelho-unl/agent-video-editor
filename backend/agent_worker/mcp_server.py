@@ -57,7 +57,7 @@ async def create_mcp_server():
             Tool(
                 name="analyze_media_files",
                 description=(
-                    "Analyzes video or audio content using a multimodal AI to provide "
+                    "Analyzes video, audio, or image content using a multimodal AI to provide "
                     "insights. Use this to understand what's in the media files before "
                     "deciding on an editing strategy. The tool downloads files from "
                     "storage, analyzes them, and returns a text description."
@@ -70,7 +70,7 @@ async def create_mcp_server():
                             "items": {"type": "string"},
                             "description": (
                                 "A list of media filenames to analyze (e.g., "
-                                "['video1.mp4', 'audio1.mp3'])."
+                                "['video1.mp4', 'audio1.mp3', 'image1.png'])."
                             ),
                         },
                         "prompt": {
@@ -85,7 +85,7 @@ async def create_mcp_server():
                             "type": "string",
                             "description": (
                                 "The source prefix in the object storage for the media "
-                                "files (e.g., 'videos' or 'audios'). Defaults to 'videos'."
+                                "files (e.g., 'medias', 'results', 'temp'). Defaults to 'medias'."
                             ),
                         },
                     },
@@ -95,7 +95,7 @@ async def create_mcp_server():
             Tool(
                 name="list_available_media_files",
                 description=(
-                    "Lists all video and audio files in object storage, with optional "
+                    "Lists all video, audio, and image files in object storage, with optional "
                     "metadata and sorting. Essential for discovering what media is "
                     "available to work with."
                 ),
@@ -176,10 +176,10 @@ async def create_mcp_server():
                 description=(
                     "Executes an editing script on video files from storage. This tool "
                     "orchestrates a complete editing job by: 1. Downloading the "
-                    "specified input video files from the 'videos/' prefix in storage. "
+                    "specified input video files from the 'medias/' prefix in storage. "
                     "2. Downloading the specified script from the 'scripts/' prefix. "
                     "3. Executing the script with the inputs. 4. Uploading the "
-                    "resulting video to the 'videos/' prefix with the specified output "
+                    "resulting video to the 'medias/' prefix with the specified output "
                     "filename. The script receives input filenames as arguments, "
                     "followed by the output filename."
                 ),
@@ -191,14 +191,15 @@ async def create_mcp_server():
                             "items": {"type": "string"},
                             "description": (
                                 "A list of input video filenames to be processed from the "
-                                "'videos' prefix in storage."
+                                "'medias' prefix in storage."
                             ),
                         },
-                        "output_file": {
+                        "output_filepath": {
                             "type": "string",
                             "description": (
                                 "The desired filename for the output video, which will be "
-                                "stored in the 'videos' prefix."
+                                "stored in the 'medias' prefix."
+                                "Should include a path within the storage, e.g., 'results/my_video.mp4'."
                             ),
                         },
                         "script_file_name": {
@@ -208,7 +209,7 @@ async def create_mcp_server():
                             ),
                         },
                     },
-                    "required": ["input_files", "output_file"],
+                    "required": ["input_files", "output_filepath"],
                 },
             ),
         ]

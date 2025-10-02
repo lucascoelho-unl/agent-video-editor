@@ -41,7 +41,7 @@ async def health_check():
     return {"status": "healthy", "message": "API is running"}
 
 
-@app.get("/api/v1/media")
+@app.get("/api/v1/medias")
 async def list_media_endpoint():
     """
     Endpoint to list all media files (videos and audio).
@@ -60,7 +60,7 @@ async def upload_media_endpoint(file: UploadFile = File(...)):
 
 
 @app.delete("/api/v1/media/{filename}")
-async def delete_media_endpoint(filename: str, source: str = Query("videos")):
+async def delete_media_endpoint(filename: str, source: str = Query("medias")):
     """
     Endpoint to delete a video or audio file.
     """
@@ -101,7 +101,7 @@ async def container_status_endpoint():
 
 
 @app.get("/api/v1/download/{filename}")
-async def download_video_endpoint(filename: str, source: str = Query("results")):
+async def download_video_endpoint(filename: str, source: str = Query("medias")):
     """
     Endpoint to download a video or audio file from MinIO storage.
     """
@@ -121,6 +121,12 @@ async def download_video_endpoint(filename: str, source: str = Query("results"))
         "flac": "audio/flac",
         "ogg": "audio/ogg",
         "m4a": "audio/mp4",
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "gif": "image/gif",
+        "bmp": "image/bmp",
+        "tiff": "image/tiff",
     }
     content_type = content_type_map.get(file_extension, "application/octet-stream")
 

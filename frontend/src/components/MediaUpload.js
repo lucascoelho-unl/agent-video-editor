@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import apiService from "../services/api";
-import "./VideoUpload.css";
+import "./MediaUpload.css";
 
 // Constants
 const ALLOWED_VIDEO_TYPES = [
@@ -22,12 +22,23 @@ const ALLOWED_AUDIO_TYPES = [
   "audio/x-m4a",
   "audio/mp4",
 ];
-const ALLOWED_TYPES = [...ALLOWED_VIDEO_TYPES, ...ALLOWED_AUDIO_TYPES];
+const ALLOWED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/bmp",
+  "image/tiff",
+];
+const ALLOWED_TYPES = [
+  ...ALLOWED_VIDEO_TYPES,
+  ...ALLOWED_AUDIO_TYPES,
+  ...ALLOWED_IMAGE_TYPES,
+];
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
 const SUPPORTED_FORMATS =
-  "MP4, AVI, MOV, MKV, WebM, MP3, WAV, AAC, FLAC, OGG, M4A, WMA";
+  "MP4, AVI, MOV, MKV, WebM, MP3, WAV, AAC, FLAC, OGG, M4A, WMA, JPG, PNG, GIF";
 
-const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
+const MediaUpload = ({ onUploadSuccess, onUploadError }) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadQueue, setUploadQueue] = useState([]);
@@ -53,6 +64,12 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
       "ogg",
       "m4a",
       "wma",
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "bmp",
+      "tiff",
     ];
 
     const isValidMimeType = ALLOWED_TYPES.includes(file.type);
@@ -190,7 +207,7 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
   };
 
   return (
-    <div className="video-upload">
+    <div className="media-upload">
       <div
         className={`upload-area ${isDragOver ? "drag-over" : ""} ${
           isUploading ? "uploading" : ""
@@ -255,7 +272,7 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
             </div>
             <input
               type="file"
-              accept="video/*,audio/*,.mp4,.avi,.mov,.mkv,.webm,.mp3,.wav,.aac,.flac,.ogg,.m4a,.wma"
+              accept="video/*,audio/*,image/*,.mp4,.avi,.mov,.mkv,.webm,.mp3,.wav,.aac,.flac,.ogg,.m4a,.wma,.jpg,.jpeg,.png,.gif,.bmp,.tiff"
               multiple
               onChange={handleFileSelect}
               className="file-input"
@@ -268,4 +285,4 @@ const VideoUpload = ({ onUploadSuccess, onUploadError }) => {
   );
 };
 
-export default VideoUpload;
+export default MediaUpload;
