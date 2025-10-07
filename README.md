@@ -1,71 +1,43 @@
-cd backend\
-python main.py
+# Agentistic Video Editor Interface 🎬
 
-cd frontend\
-npm start
-
-cd backend\
-adk web
-
-cd backend:\
-
-- docker-compose down\
-- docker-compose up -d\
-- docker-compose logs -f\
-- docker-compose build --no-cache\
-- docker-compose up --scale agent=2 --build -d
-
-inside docker:
-adk run agent
-
-TODO: Database
-TODO: Remove coupling from API.
-TODO: Edit script taking too long.
-
-- TODO: Add following agent specialized in analizing transcript context and organizing the merging order
-- TODO: Move video processing to when user clicks edit button.
-- TODO: Make cuts inside the video for simplicity and pacing. Remove buzzwords per say, and repetitive video parts overall (I think this gemini tool will be extremelly helpful for this. https://www.youtube.com/watch?v=6OhqVQ0lO1g)
-- TODO: Make tool communication by HTTP Stremable Manager (just like creevo)
+This project introduces an **agentic AI solution for video editing**, designed to streamline the creative workflow from raw media to polished video. It leverages multi-agent systems and advanced prompt engineering to offer an iterative and user-feedback-driven editing experience.
 
 ---
 
-Maybe have cocurrent agents working in parallel to extract video contexts and polish them cocurrently.
+## Motivation
+
+The primary motivation behind this project was to explore and understand:
+* **Multi-agent solutions**: How autonomous AI agents can collaborate to achieve complex tasks.
+* **Prompt engineering**: Crafting effective prompts to guide AI behavior.
+* **Scalable agent development**: Building agents that can efficiently handle increasing complexity and data.
 
 ---
 
-Ideally, I would open a moviepy "server" and have the docker call tools that "change" the videos inside the "server" per say. This way we can have the output be processed only once.
+## Features
 
-What can we do?
+The system facilitates a unique video editing process through several specialized AI agents:
 
-1. Decide what method to use for the transcripts
-2. Create a "server" that runs in the container, and tools that call "endpoints" in this server and do stuff.
-3. On startup, videos are processed into the container, and into the server. Agent then do its thing for editing, and at the end, process the video back up.
-   3.1 While the server is running in the docker container, the agent needs to be able to understand the context of the videos, for this, the video processing will occur using gemini's video processing tools
-   3.2 After that, the agent delegates another agent to contextualize and organize the videos and return a list of merging order (maybe gemini video editor can do this!)
-   3.3 The editing agent then goes to the video folder and merges the videos given the list that was returned to him
+1.  **Interviewer Agent**: Engages with the user to comprehend the creative vision and goals for the video.
+2.  **Video-Editing Agent**:
+    * Receives structured prompts from the Interviewer.
+    * Utilizes **Gemini Video Analysis tool** to understand video content.
+    * Organizes video segments based on its understanding.
+    * Generates an editing script using **FFmpeg** as the editing language.
+3.  **Feedback Agent**:
+    * "Watches" (analyzes using the Gemini Video Analysis tool) the newly edited video.
+    * Provides constructive feedback on strengths and areas for improvement.
+    * This agent drives an **iterative editing loop** until the video meets predefined quality standards.
 
----
-
----
-
----
-
----
+The user then reviews the final result and can initiate further agentic iterations for refinement.
 
 ---
 
----
+## Implementation Details
 
----
-
-Intelligent Clip Extraction (Smart B-Roll):
-Concept: The agent could automatically identify and extract interesting or relevant clips from a longer video.
-User Flow: A user could ask the agent, "Create a highlight reel of all the funny moments from this video," and the agent would use Gemini to identify those moments and merge them into a new clip.
-
-Transcript-Based Editing:
-Concept: Since you're already extracting transcripts, you can take this a step further. The agent could use Gemini to understand the context of the transcript and perform edits based on it.
-User Flow: A user could say, "Merge all the clips where the speaker is talking about 'AI'," and the agent would use the transcript and Gemini's understanding to find and merge the relevant video segments.
-
-Automated Video Chaptering:
-Concept: For longer videos, the agent could automatically identify different topics or scenes and create video chapters.
-User Flow: A user uploads a long video, and the agent uses Gemini to analyze the content and generate a list of chapters with timestamps and descriptions, which could be displayed in the video player.
+* **Frameworks**: Developed using **Google ADK** (Agent Development Kit) and **LangGraph tracing** for monitoring token usage and evaluating improvement metrics.
+* **Language**: Python.
+* **Libraries**:
+    * **MCP library**: Likely for multi-agent coordination.
+    * **FFmpeg**: For robust video editing capabilities.
+    * **Gemini Video Analysis tool**: For understanding video content and providing feedback.
+    * Example of a video that can be processed by the system: [https://www.youtube.com/watch?v=6OhqVQ0lO1g](https://www.youtube.com/watch?v=6OhqVQ0lO1g)
